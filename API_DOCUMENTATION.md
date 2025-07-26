@@ -4,7 +4,7 @@
 
 ### Base URL
 
-```
+```bash
 http://localhost:3000/api
 ```
 
@@ -12,7 +12,7 @@ http://localhost:3000/api
 
 Semua endpoint memerlukan authentication menggunakan JWT token di header:
 
-```
+```text
 Authorization: Bearer <token>
 ```
 
@@ -175,4 +175,5 @@ MAX_FILE_SIZE=10485760
 # Server
 PORT=3000
 NODE_ENV=development
+
 ```

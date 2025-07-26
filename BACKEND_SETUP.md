@@ -18,7 +18,7 @@ npm install
 
 #### Install PostgreSQL
 
-- Download dan install PostgreSQL dari https://www.postgresql.org/download/
+- Download dan install PostgreSQL dari <https://www.postgresql.org/download/>
 - Buat database baru:
 
 ```sql
@@ -139,18 +139,18 @@ Setelah menjalankan seed script, tersedia user default:
 
 | Email                    | Password | Role     | Institution |
 | ------------------------ | -------- | -------- | ----------- |
-| admin@lan-datathon.go.id | admin123 | Admin    | Super Admin |
-| andi@bps.go.id           | admin123 | Admin    | BPS         |
-| budi@bps.go.id           | admin123 | Operator | BPS         |
-| citra@bps.go.id          | admin123 | Viewer   | BPS         |
-| dewi@kemenkeu.go.id      | admin123 | Admin    | Kemenkeu    |
-| eko@kemendagri.go.id     | admin123 | Admin    | Kemendagri  |
+| <admin@lan-datathon.go.id> | admin123 | Admin    | Super Admin |
+| <andi@bps.go.id>           | admin123 | Admin    | BPS         |
+| <budi@bps.go.id>           | admin123 | Operator | BPS         |
+| <citra@bps.go.id>          | admin123 | Viewer   | BPS         |
+| <dewi@kemenkeu.go.id>      | admin123 | Admin    | Kemenkeu    |
+| <eko@kemendagri.go.id>     | admin123 | Admin    | Kemendagri  |
 
 ## AI Integration
 
 ### OpenAI Setup
 
-1. Dapatkan API key dari https://platform.openai.com/
+1. Dapatkan API key dari <https://platform.openai.com/>
 2. Tambahkan ke environment variable `OPENAI_API_KEY`
 
 ### Document Analysis Features

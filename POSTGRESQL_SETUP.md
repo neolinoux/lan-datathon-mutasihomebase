@@ -53,10 +53,10 @@ After seeding, you can login with:
 
 | Email                    | Password | Role     | Institution |
 | ------------------------ | -------- | -------- | ----------- |
-| admin@lan-datathon.go.id | admin123 | admin    | Super Admin |
-| andi@bps.go.id           | admin123 | admin    | BPS         |
-| budi@bps.go.id           | admin123 | operator | BPS         |
-| citra@bps.go.id          | admin123 | viewer   | BPS         |
+| <admin@lan-datathon.go.id> | admin123 | admin    | Super Admin |
+| <andi@bps.go.id>           | admin123 | admin    | BPS         |
+| <budi@bps.go.id>           | admin123 | operator | BPS         |
+| <citra@bps.go.id>          | admin123 | viewer   | BPS         |
 
 ## Troubleshooting
 

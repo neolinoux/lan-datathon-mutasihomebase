@@ -15,7 +15,7 @@ model User {
   name           String
   email          String   @unique
   password_hash  String
-  role           Role     @default(viewer)
+  role           Role     @default(user)
   institution_id Int?
   is_active      Boolean  @default(true)
   created_at     DateTime @default(now())
@@ -74,22 +74,96 @@ model Document {
 }
 
 model AnalysisResult {
-  id              Int          @id @default(autoincrement())
-  document_id     Int
-  institution_id  Int
-  analysis_type   AnalysisType
-  result_data     Json
-  ai_model_used   String?
-  processing_time Int?
-  created_at      DateTime     @default(now())
+  id                   Int      @id @default(autoincrement())
+  analysis_id          String   @unique // UUID from external API
+  institution_id       Int
+  user_id              Int
+  judul_kegiatan       String
+  deskripsi_kegiatan   String
+  include_dok_keuangan Boolean  @default(false)
+  path_dok_kegiatan    String?
+  path_dok_keuangan    String?
+  score_compliance     Float // from summary_indicator_compliance
+  tingkat_risiko       Int // from summary_indicator_compliance
+  status               String   @default("success") // success, error, processing
+  error_message        String?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
 
   // Relations
-  document    Document    @relation(fields: [document_id], references: [id])
-  institution Institution @relation(fields: [institution_id], references: [id])
-  User        User?       @relation(fields: [userId], references: [id])
-  userId      Int?
+  institution           Institution                   @relation(fields: [institution_id], references: [id])
+  user                  User                          @relation(fields: [user_id], references: [id])
+  analysis_files        AnalysisFile[]
+  compliance_indicators AnalysisComplianceIndicator[]
+  recommendations       AnalysisRecommendation[]
+  related_regulations   AnalysisRelatedRegulation[]
+  Document              Document?                     @relation(fields: [documentId], references: [id])
+  documentId            Int?
 
   @@map("analysis_results")
+}
+
+model AnalysisFile {
+  id            Int      @id @default(autoincrement())
+  analysis_id   Int
+  file_type     FileType // dok_kegiatan, dok_keuangan
+  original_name String
+  stored_path   String
+  file_size     Int
+  mime_type     String?
+  created_at    DateTime @default(now())
+
+  // Relations
+  analysis_result AnalysisResult @relation(fields: [analysis_id], references: [id], onDelete: Cascade)
+
+  @@map("analysis_files")
+}
+
+model AnalysisComplianceIndicator {
+  id              Int      @id @default(autoincrement())
+  analysis_id     Int
+  id_indikator    Int
+  nama            String
+  encode_class    Int // 1: Sangat Sesuai, 2: Cukup, 3: Tidak Sesuai, 0: None
+  detail_analisis String
+  alasan_analisis String
+  score_indikator Float
+  created_at      DateTime @default(now())
+
+  // Relations
+  analysis_result AnalysisResult @relation(fields: [analysis_id], references: [id], onDelete: Cascade)
+
+  @@map("analysis_compliance_indicators")
+}
+
+model AnalysisRecommendation {
+  id                    Int      @id @default(autoincrement())
+  analysis_id           Int
+  id_indikator          Int
+  judul_rekomendasi     String
+  deskripsi_rekomendasi String
+  langkah_rekomendasi   String[] // Array of steps
+  created_at            DateTime @default(now())
+
+  // Relations
+  analysis_result AnalysisResult @relation(fields: [analysis_id], references: [id], onDelete: Cascade)
+
+  @@map("analysis_recommendations")
+}
+
+model AnalysisRelatedRegulation {
+  id                Int      @id @default(autoincrement())
+  analysis_id       Int
+  judul_peraturan   String
+  instansi          String
+  tingkat_kepatuhan Float
+  url_pera          String?
+  created_at        DateTime @default(now())
+
+  // Relations
+  analysis_result AnalysisResult @relation(fields: [analysis_id], references: [id], onDelete: Cascade)
+
+  @@map("analysis_related_regulations")
 }
 
 model ComplianceIndicator {
@@ -112,8 +186,7 @@ model ComplianceIndicator {
 
 enum Role {
   admin
-  operator
-  viewer
+  user
 }
 
 enum AnalysisType {
@@ -125,4 +198,9 @@ enum AnalysisType {
 enum IndicatorType {
   document
   sentiment
+}
+
+enum FileType {
+  dok_kegiatan
+  dok_keuangan
 }

@@ -40,4 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# uploaded files (but keep the directory)
+public/uploads/*
+!public/uploads/.gitkeep
+
 Proposal LAN Datathon.docx
+
+response_1753532166514.json

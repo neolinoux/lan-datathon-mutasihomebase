@@ -4,12 +4,12 @@
 
 1. **Install PostgreSQL**
 
-   - Download dari: https://www.postgresql.org/download/windows/
+   - Download dari: <https://www.postgresql.org/download/windows/>
    - Install dengan default settings
    - Note down password untuk user 'postgres'
 
 2. **Install Node.js**
-   - Download dari: https://nodejs.org/
+   - Download dari: <https://nodejs.org/>
    - Install dengan default settings
 
 ## Setup Database
@@ -83,12 +83,12 @@ Setelah seeding, tersedia user default:
 
 | Email                    | Password | Role     | Institution |
 | ------------------------ | -------- | -------- | ----------- |
-| admin@lan-datathon.go.id | admin123 | Admin    | Super Admin |
-| andi@bps.go.id           | admin123 | Admin    | BPS         |
-| budi@bps.go.id           | admin123 | Operator | BPS         |
-| citra@bps.go.id          | admin123 | Viewer   | BPS         |
-| dewi@kemenkeu.go.id      | admin123 | Admin    | Kemenkeu    |
-| eko@kemendagri.go.id     | admin123 | Admin    | Kemendagri  |
+| <admin@lan-datathon.go.id> | admin123 | Admin    | Super Admin |
+| <andi@bps.go.id>           | admin123 | Admin    | BPS         |
+| <budi@bps.go.id>           | admin123 | Operator | BPS         |
+| <citra@bps.go.id>          | admin123 | Viewer   | BPS         |
+| <dewi@kemenkeu.go.id>      | admin123 | Admin    | Kemenkeu    |
+| <eko@kemendagri.go.id>     | admin123 | Admin    | Kemendagri  |
 
 ## Troubleshooting
 
@@ -128,7 +128,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 
 ## Database Schema
 
-### Tables Created:
+### Tables Created
 
 - `users` - User management
 - `institutions` - Institution data
@@ -136,7 +136,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 - `analysis_results` - Analysis results
 - `compliance_indicators` - Compliance metrics
 
-### Sample Data:
+### Sample Data
 
 - 3 Institutions (BPS, Kemenkeu, Kemendagri)
 - 6 Users dengan roles berbeda

@@ -1,459 +1,626 @@
 "use client"
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
-import { Menu, MapPin, Phone, Mail, Globe, FileText, User, LogOut, Home } from "lucide-react";
-import Link from "next/link";
-import { ModeToggle } from "@/components/toggle-dark-mode";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/lib/auth-context";
-import ProtectedRoute from "@/components/protected-route";
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { ChevronLeft, ChevronRight, Building2, Users, FileText, Sun, Moon, Home, Shield, TrendingUp, History, LogOut } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import ProtectedRoute from '@/components/protected-route'
+import Link from 'next/link'
+import { useAuth } from '@/lib/auth-context'
+import { ModeToggle } from '@/components/toggle-dark-mode'
 
-const INSTANSIS = [
-  "BPS",
-  "Kemenkeu",
-  "Kemendagri"
-];
-
-const INSTANSI_DATA = {
-  "BPS": {
-    nama: "Badan Pusat Statistik",
-    kategori: "Lembaga Pemerintah Non Kementerian",
-    alamat: "Jl. Dr. Sutomo No. 6-8, Jakarta Pusat",
-    telp: "(021) 3841195",
-    email: "bps@bps.go.id",
-    web: "www.bps.go.id",
-    didirikan: "1960",
-    pegawai: "12,450",
-    totalDokumen: "1,234",
-    update: "2024-01-15",
-    stats: [
-      { label: "Total Dokumen", value: "1,234", change: "+12% dari bulan lalu" },
-      { label: "Kepatuhan", value: "87%", change: "+5% dari bulan lalu" },
-      { label: "Analisis Selesai", value: "892", change: "+23% dari bulan lalu" },
-      { label: "Rekomendasi", value: "156", change: "+8% dari bulan lalu" }
-    ],
-    complianceDokumen: [
-      {
-        label: "Transparansi Keuangan",
-        sangat: 45,
-        sebagian: 23,
-        tidak: 12,
-        none: 20
-      },
-      {
-        label: "Akuntabilitas Publik",
-        sangat: 38,
-        sebagian: 31,
-        tidak: 15,
-        none: 16
-      }
-    ],
-    complianceSentimen: [
-      {
-        label: "Review Publik",
-        positif: 52,
-        netral: 28,
-        negatif: 15,
-        none: 5
-      },
-      {
-        label: "Feedback Stakeholder",
-        positif: 48,
-        netral: 35,
-        negatif: 12,
-        none: 5
-      }
-    ]
-  },
-  "Kemenkeu": {
-    nama: "Kementerian Keuangan",
-    kategori: "Kementerian",
-    alamat: "Jl. Lapangan Banteng Timur No. 2-4, Jakarta Pusat",
-    telp: "(021) 3449230",
-    email: "humas@kemenkeu.go.id",
-    web: "www.kemenkeu.go.id",
-    didirikan: "1945",
-    pegawai: "8,920",
-    totalDokumen: "2,156",
-    update: "2024-01-20",
-    stats: [
-      { label: "Total Dokumen", value: "2,156", change: "+18% dari bulan lalu" },
-      { label: "Kepatuhan", value: "92%", change: "+3% dari bulan lalu" },
-      { label: "Analisis Selesai", value: "1,234", change: "+15% dari bulan lalu" },
-      { label: "Rekomendasi", value: "89", change: "+12% dari bulan lalu" }
-    ],
-    complianceDokumen: [
-      {
-        label: "Transparansi Keuangan",
-        sangat: 58,
-        sebagian: 25,
-        tidak: 8,
-        none: 9
-      },
-      {
-        label: "Akuntabilitas Publik",
-        sangat: 52,
-        sebagian: 28,
-        tidak: 12,
-        none: 8
-      }
-    ],
-    complianceSentimen: [
-      {
-        label: "Review Publik",
-        positif: 65,
-        netral: 22,
-        negatif: 10,
-        none: 3
-      },
-      {
-        label: "Feedback Stakeholder",
-        positif: 61,
-        netral: 28,
-        negatif: 8,
-        none: 3
-      }
-    ]
-  },
-  "Kemendagri": {
-    nama: "Kementerian Dalam Negeri",
-    kategori: "Kementerian",
-    alamat: "Jl. Medan Merdeka Utara No. 7, Jakarta Pusat",
-    telp: "(021) 34832556",
-    email: "humas@kemendagri.go.id",
-    web: "www.kemendagri.go.id",
-    didirikan: "1945",
-    pegawai: "6,780",
-    totalDokumen: "987",
-    update: "2024-01-18",
-    stats: [
-      { label: "Total Dokumen", value: "987", change: "+8% dari bulan lalu" },
-      { label: "Kepatuhan", value: "78%", change: "+7% dari bulan lalu" },
-      { label: "Analisis Selesai", value: "654", change: "+19% dari bulan lalu" },
-      { label: "Rekomendasi", value: "123", change: "+6% dari bulan lalu" }
-    ],
-    complianceDokumen: [
-      {
-        label: "Transparansi Keuangan",
-        sangat: 32,
-        sebagian: 35,
-        tidak: 18,
-        none: 15
-      },
-      {
-        label: "Akuntabilitas Publik",
-        sangat: 28,
-        sebagian: 38,
-        tidak: 22,
-        none: 12
-      }
-    ],
-    complianceSentimen: [
-      {
-        label: "Review Publik",
-        positif: 42,
-        netral: 38,
-        negatif: 18,
-        none: 2
-      },
-      {
-        label: "Feedback Stakeholder",
-        positif: 38,
-        netral: 42,
-        negatif: 16,
-        none: 4
-      }
-    ]
-  }
-};
+// Interface untuk struktur data instansi
+interface InstansiData {
+  id_instansi: number
+  nama_instansi: string
+  singkatan_instansi: string
+  status_lembaga: string
+  alamat: string
+  no_telp: string
+  email: string
+  website: string
+  tahun_berdiri: string
+  total_pegawai: number
+  total_peraturan: number
+  update_terakhir: string
+  total_dokumen: number
+  dm_total_dokumen: number
+  mean_skor_kepatuhan: number
+  dm_mean_skor_kepatuhan: number
+  mean_sentiment_positive: number
+  dm_mean_sentiment_positive: number
+  total_user: number
+  dm_total_user: number
+  prosedural_class1: number
+  prosedural_class2: number
+  prosedural_class3: number
+  prosedural_none: number
+  prosedural_sentiment_positive: number
+  prosedural_sentiment_negative: number
+  prosedural_sentiment_neutral: number
+  prosedural_sentiment_none: number
+  efisiensi_anggaran_class1: number
+  efisiensi_anggaran_class2: number
+  efisiensi_anggaran_class3: number
+  efisiensi_anggaran_none: number
+  efisiensi_anggaran_sentiment_positive: number
+  efisiensi_anggaran_sentiment_negative: number
+  efisiensi_anggaran_sentiment_neutral: number
+  efisiensi_anggaran_sentiment_none: number
+  transparansi_class1: number
+  transparansi_class2: number
+  transparansi_class3: number
+  transparansi_none: number
+  transparansi_sentiment_positive: number
+  transparansi_sentiment_negative: number
+  transparansi_sentiment_neutral: number
+  transparansi_sentiment_none: number
+  regulasi_class1: number
+  regulasi_class2: number
+  regulasi_class3: number
+  regulasi_none: number
+  regulasi_sentiment_positive: number
+  regulasi_sentiment_negative: number
+  regulasi_sentiment_neutral: number
+  regulasi_sentiment_none: number
+  etika_antikorupsi_class1: number
+  etika_antikorupsi_class2: number
+  etika_antikorupsi_class3: number
+  etika_antikorupsi_none: number
+  etika_antikorupsi_sentiment_positive: number
+  etika_antikorupsi_sentiment_negative: number
+  etika_antikorupsi_sentiment_neutral: number
+  etika_antikorupsi_sentiment_none: number
+  pengelolaan_sumber_daya_class1: number
+  pengelolaan_sumber_daya_class2: number
+  pengelolaan_sumber_daya_class3: number
+  pengelolaan_sumber_daya_none: number
+  pengelolaan_sumber_daya_sentiment_positive: number
+  pengelolaan_sumber_daya_sentiment_negative: number
+  pengelolaan_sumber_daya_sentiment_neutral: number
+  pengelolaan_sumber_daya_sentiment_none: number
+  evalusi_rtl_class1: number
+  evalusi_rtl_class2: number
+  evalusi_rtl_class3: number
+  evalusi_rtl_none: number
+  evalusi_rtl_sentiment_positive: number
+  evalusi_rtl_sentiment_negative: number
+  evalusi_rtl_sentiment_neutral: number
+  evalusi_rtl_sentiment_none: number
+}
 
 export default function DashboardPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [instansi, setInstansi] = useState(INSTANSIS[0]);
-  const [data, setData] = useState<any>(null);
-  const [institutions, setInstitutions] = useState<any[]>([]);
-  const { user, logout, token } = useAuth();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [selectedInstansi, setSelectedInstansi] = useState<InstansiData | null>(null)
+  const [instansiList, setInstansiList] = useState<InstansiData[]>([])
+  const { theme, setTheme } = useTheme()
+  const { user, logout } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (token) {
-      fetchInstitutions();
-      fetchInstitutionData();
-    } else {
-      // Fallback ke dummy data jika tidak ada token
-      setData(INSTANSI_DATA[instansi as keyof typeof INSTANSI_DATA]);
-    }
-  }, [token, instansi]);
+    // Fetch data instansi dari API lokal (yang akan mengambil dari external API)
+    const fetchInstansiData = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
 
-  const fetchInstitutions = async () => {
-    try {
-      const response = await fetch('/api/institutions', {
-        headers: {
-          'Authorization': `Bearer ${token}`
+        const response = await fetch('/api/instansi')
+
+        console.log('Local API Response status:', response.status)
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
         }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setInstitutions(data);
-      }
-    } catch (error) {
-      console.error('Error fetching institutions:', error);
-    }
-  };
 
-  const fetchInstitutionData = async () => {
-    try {
-      const response = await fetch(`/api/compliance/indicators?institutionId=${instansi}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+        const data: InstansiData[] = await response.json()
+        console.log('Parsed JSON data from local API:', data)
+
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error('API returned empty or invalid data array')
         }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setData(data);
-      } else {
-        // Fallback ke dummy data jika API gagal
-        setData(INSTANSI_DATA[instansi as keyof typeof INSTANSI_DATA]);
-      }
-    } catch (error) {
-      console.error('Error fetching institution data:', error);
-      // Fallback ke dummy data jika error
-      setData(INSTANSI_DATA[instansi as keyof typeof INSTANSI_DATA]);
-    }
-  };
 
-  const handleLogout = () => {
-    logout();
-  };
+        setInstansiList(data)
+        if (user?.role === 'admin') {
+          setSelectedInstansi(data[0])
+        } else {
+          const userInstansi = data.find(inst => inst.id_instansi === user?.institution?.id)
+          setSelectedInstansi(userInstansi || data[0])
+        }
+      } catch (err) {
+        console.error('Error fetching instansi data:', err)
+        setError(err instanceof Error ? err.message : 'Gagal memuat data instansi')
+        setInstansiList([])
+        setSelectedInstansi(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchInstansiData()
+  }, [user])
+
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="animate-spin w-10 h-10 border-t-2 border-b-2 border-primary rounded-full"></div>
+        <div className="text-2xl font-bold">Loading...</div>
+        <div className="text-sm text-muted-foreground">Please wait while we load the data</div>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="text-2xl font-bold text-red-600 mb-2">Gagal memuat data instansi</div>
+        <div className="text-sm text-muted-foreground">{error}</div>
+      </div>
+    )
+  }
+  if (!selectedInstansi) {
+    return null;
+  }
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen bg-background">
-        {/* Sidebar kiri collapsable */}
-        <aside className={`transition-all duration-200 border-r bg-card flex flex-col ${sidebarOpen ? 'w-64' : 'w-16'} h-screen min-h-screen p-0`}>
-          <div className="flex flex-col h-full justify-between">
-            {/* Burger button di kanan atas sidebar */}
-            <div className="flex justify-end p-2">
-              <button
-                className="p-2 rounded hover:bg-muted transition-colors flex items-center justify-center w-10 h-10"
-                onClick={() => setSidebarOpen((v) => !v)}
-                aria-label="Toggle Sidebar"
-              >
-                <Menu size={24} />
-              </button>
+      <div className="min-h-screen bg-background">
+        {/* Sidebar */}
+        <div className={`fixed left-0 top-0 h-full bg-card border-r transition-all duration-300 z-50 ${sidebarCollapsed ? 'w-18' : 'w-64'}`}>
+          <div className="flex flex-col h-full">
+            {/* Burger Button */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} w-full`}>
+                {!sidebarCollapsed && (
+                  <div className="flex items-center space-x-2">
+                    <Building2 className="h-6 w-6 text-primary" />
+                    <span className="font-semibold text-lg">Dashboard</span>
+                  </div>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="h-8 w-8 p-0"
+                >
+                  {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
-            <div className="border-b border-border w-full" />
-            {/* Menu utama */}
-            <nav className="flex flex-col gap-2 items-center flex-1 mt-4">
-              {/* Dashboard */}
-              <Link href="/" className="w-11/12 cursor-pointer">
+
+            {/* Menu Items */}
+            <div className="flex-1 p-4 flex flex-col gap-4">
+              <Link href="/">
                 <Button
-                  variant="ghost"
-                  className={`w-full font-semibold text-left border border-border rounded-lg cursor-pointer ${sidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'} hover:bg-muted focus:bg-muted transition-colors`}
+                  variant="default"
+                  className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
                 >
-                  {sidebarOpen ? (
-                    <div className="flex items-center gap-2">
-                      <Home size={22} />
-                      <span>Dashboard</span>
-                    </div>
-                  ) : (
-                    <Home size={22} />
-                  )}
+                  <Home className="h-4 w-4 mr-2" />
+                  {!sidebarCollapsed && "Dashboard"}
                 </Button>
               </Link>
-              <Link href="/analisis-dokumen" className="w-11/12 cursor-pointer">
+
+              <Link href="/analisis-dokumen">
                 <Button
-                  variant="ghost"
-                  className={`w-full font-semibold text-left border border-border rounded-lg cursor-pointer ${sidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'} hover:bg-muted focus:bg-muted transition-colors`}
+                  variant="outline"
+                  className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
                 >
-                  {sidebarOpen ? (
-                    <div className="flex items-center gap-2">
-                      <FileText size={22} />
-                      <span>Analisis Dokumen</span>
-                    </div>
-                  ) : (
-                    <FileText size={22} />
-                  )}
+                  <FileText className="h-4 w-4 mr-2" />
+                  {!sidebarCollapsed && "Analisis Dokumen"}
                 </Button>
               </Link>
-              {/* New Link for Manajemen Pengguna */}
-              <Link href="/manajemen-pengguna" className="w-11/12 cursor-pointer">
+
+              <Link href="/riwayat-analisis">
                 <Button
-                  variant="ghost"
-                  className={`w-full font-semibold text-left border border-border rounded-lg cursor-pointer mt-2 ${sidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'} hover:bg-muted focus:bg-muted transition-colors`}
+                  variant="outline"
+                  className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
                 >
-                  {sidebarOpen ? (
-                    <div className="flex items-center gap-2">
-                      <User size={22} />
-                      <span>Manajemen Pengguna</span>
-                    </div>
-                  ) : (
-                    <User size={22} />
-                  )}
+                  <History className="h-4 w-4 mr-2" />
+                  {!sidebarCollapsed && "Riwayat Analisis"}
                 </Button>
               </Link>
-            </nav>
-            <div />
-          </div>
-        </aside>
-        {/* Konten utama */}
-        <div className="flex-1 flex flex-col">
-          {/* Navbar atas */}
-          <nav className="w-full bg-card border-b px-8 py-4 flex items-center justify-between">
-            <div className="text-lg font-semibold">Dashboard Monitoring Kepatuhan AI</div>
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="min-w-[220px] justify-between">
-                    {instansi}
-                    <span className="ml-2">▼</span>
+
+              <Link href="/manajemen-file">
+                <Button
+                  variant="outline"
+                  className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  {!sidebarCollapsed && "Manajemen File"}
+                </Button>
+              </Link>
+
+              {user?.role === 'admin' && (
+                <Link href="/manajemen-pengguna">
+                  <Button
+                    variant="outline"
+                    className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    {!sidebarCollapsed && "Manajemen Pengguna"}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {institutions.length > 0 ? (
-                    institutions.map((institution) => (
-                      <DropdownMenuItem key={institution.id} onClick={() => setInstansi(institution.name)}>
-                        {institution.name}
-                      </DropdownMenuItem>
-                    ))
-                  ) : (
-                    INSTANSIS.map((item) => (
-                      <DropdownMenuItem key={item} onClick={() => setInstansi(item)}>
-                        {item}
-                      </DropdownMenuItem>
-                    ))
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {user?.name} ({user?.role})
-                </span>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
-              <ModeToggle />
+                </Link>
+              )}
             </div>
-          </nav>
-          <main className="flex-1 p-6 space-y-4">
-            {!data ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="text-lg font-semibold mb-2">Loading...</div>
-                  <div className="text-sm text-muted-foreground">Memuat data instansi</div>
-                </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
+          {/* Navbar */}
+          <div className="bg-card border-b">
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center space-x-4">
+                <h1 className="text-2xl font-bold">Dashboard Admin - Monitoring Kepatuhan AI</h1>
               </div>
-            ) : (
-              <>
-                {/* Info Instansi & Statistik */}
-                <Card className="p-6 flex flex-col gap-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-lg">Informasi Instansi</span>
+
+              <div className="flex items-center space-x-4">
+                {error && (
+                  <div className="text-red-600 text-sm bg-red-50 px-2 py-1 rounded">
+                    Error: {error}
                   </div>
-                  <div className="text-sm text-muted-foreground mb-4">Detail lengkap instansi yang sedang dimonitor</div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                    {/* Kiri: Info Instansi */}
-                    <div>
-                      <div className="font-bold text-base mb-1 flex items-center gap-2">{data.nama} <span className="px-2 py-1 text-xs rounded bg-muted">{data.kategori}</span></div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1"><MapPin size={16} />{data.alamat}</div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1"><Phone size={16} />{data.telp}</div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1"><Mail size={16} />{data.email}</div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1"><Globe size={16} />{data.web}</div>
-                    </div>
-                    {/* Kanan: Statistik */}
-                    <div className="md:pl-8">
-                      <div className="font-semibold mb-2">Statistik</div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-sm">
-                        <span className="text-muted-foreground">Didirikan:</span><span className="font-semibold text-foreground text-right">{data.didirikan}</span>
-                        <span className="text-muted-foreground">Total Pegawai:</span><span className="font-semibold text-foreground text-right">{data.pegawai}</span>
-                        <span className="text-muted-foreground">Total Dokumen:</span><span className="font-semibold text-foreground text-right">{data.totalDokumen}</span>
-                        <span className="text-muted-foreground">Update Terakhir:</span><span className="font-semibold text-foreground text-right">{data.update}</span>
-                      </div>
-                    </div>
+                )}
+                {/* Instansi Filter */}
+                {user?.role === 'admin' ? (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">Instansi:</span>
+                    <select
+                      value={selectedInstansi.id_instansi}
+                      onChange={(e) => {
+                        const selected = instansiList.find(inst => inst.id_instansi === parseInt(e.target.value))
+                        setSelectedInstansi(selected || instansiList[0])
+                      }}
+                      className="px-3 py-1 border rounded-md text-sm bg-background"
+                      disabled={isLoading}
+                    >
+                      {isLoading && <option>Loading...</option>}
+                      {instansiList.map((instansi) => (
+                        <option key={instansi.id_instansi} value={instansi.id_instansi}>
+                          {instansi.nama_instansi}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </Card>
-                {/* Statistik Ringkasan */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                  {data.stats?.map((s: { label: string; value: string; change: string }, i: number) => (
-                    <Card key={i} className="p-6 flex flex-col gap-1 items-start">
-                      <div className="text-xs text-muted-foreground mb-1">{s.label}</div>
-                      <div className="text-2xl font-bold">{s.value}</div>
-                      <div className="text-xs text-green-700">{s.change}</div>
-                    </Card>
-                  ))}
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">Instansi:</span>
+                    <span className="text-sm text-muted-foreground">
+                      {user?.institution?.name || 'N/A'}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground">
+                    {user?.name} ({user?.role})
+                  </span>
+                  <Button variant="outline" size="sm" onClick={() => logout()}>
+                    <LogOut className="h-4 w-4" />
+                  </Button>
                 </div>
-                {/* Indikator Compliance Dokumen */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="p-6">
-                    <div className="flex flex-col gap-0 mb-0">
-                      <div className="font-semibold text-lg">Indikator Compliance Berbasis Dokumen</div>
-                      <div className="text-sm text-muted-foreground">Analisis kepatuhan berdasarkan dokumen yang diunggah</div>
-                    </div>
-                    <div className="space-y-6">
-                      {data.complianceDokumen?.map((row: { label: string; sangat: number; sebagian: number; tidak: number; none: number }, i: number) => (
-                        <div key={i}>
-                          <div className="mb-2 font-semibold text-sm">{row.label}</div>
-                          <div className="flex gap-2">
-                            <div className="bg-green-600 text-white rounded min-w-28 flex-1 flex flex-col items-center justify-center px-2 py-2 text-center">
-                              <div className="text-xs font-semibold">Sangat Sesuai</div>
-                              <div className="text-2xl font-bold mt-1">{row.sangat}</div>
-                            </div>
-                            <div className="bg-yellow-400 text-white rounded min-w-28 flex-1 flex flex-col items-center justify-center px-2 py-2 text-center">
-                              <div className="text-xs font-semibold">Sesuaikan Sebagian</div>
-                              <div className="text-2xl font-bold mt-1">{row.sebagian}</div>
-                            </div>
-                            <div className="bg-red-500 text-white rounded min-w-28 flex-1 flex flex-col items-center justify-center px-2 py-2 text-center">
-                              <div className="text-xs font-semibold">Tidak Sesuai</div>
-                              <div className="text-2xl font-bold mt-1">{row.tidak}</div>
-                            </div>
-                            <div className="bg-gray-400 text-white rounded min-w-28 flex-1 flex flex-col items-center justify-center px-2 py-2 text-center">
-                              <div className="text-xs font-semibold">None</div>
-                              <div className="text-2xl font-bold mt-1">{row.none}</div>
-                            </div>
-                          </div>
+                <ModeToggle />
+              </div>
+            </div>
+          </div>
+
+          {/* Dashboard Content */}
+          <div className="p-6">
+            {isLoading && (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin w-8 h-8 border-t-2 border-b-2 border-primary rounded-full mr-3"></div>
+                <span>Memuat data dashboard...</span>
+              </div>
+            )}
+            {!isLoading && (
+              <>
+                {/* Top Row - Information and Statistics */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  {/* Informasi Instansi */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        <div className="flex items-center">
+                          <Building2 className="h-4 w-4 mr-2" />
+                          <span>Informasi Instansi</span>
                         </div>
-                      ))}
-                    </div>
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">Detail lengkap instansi yang sedang dimonitor</p>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="font-semibold">{selectedInstansi.nama_instansi}</div>
+                      <div className="text-sm text-muted-foreground">
+                        <div>Status: {selectedInstansi.status_lembaga}</div>
+                        <div>Alamat: {selectedInstansi.alamat}</div>
+                        <div>Telepon: {selectedInstansi.no_telp}</div>
+                        <div>Email: {selectedInstansi.email}</div>
+                        <div>Website: {selectedInstansi.website}</div>
+                      </div>
+                    </CardContent>
                   </Card>
-                  <Card className="p-6">
-                    <div className="flex flex-col gap-0 mb-0">
-                      <div className="font-semibold text-lg">Indikator Compliance Berbasis Sentimen Review</div>
-                      <div className="text-sm text-muted-foreground">Analisis kepatuhan berdasarkan sentimen dari review dan feedback</div>
-                    </div>
-                    <div className="space-y-6">
-                      {data.complianceSentimen?.map((row: { label: string; positif: number; netral: number; negatif: number; none: number }, i: number) => (
-                        <div key={i}>
-                          <div className="mb-2 font-semibold text-sm">{row.label}</div>
-                          <div className="flex gap-2">
-                            <div className="bg-green-600 text-white rounded min-w-28 flex-1 flex flex-col items-center justify-center px-2 py-2 text-center">
-                              <div className="text-xs font-semibold">Positif</div>
-                              <div className="text-2xl font-bold mt-1">{row.positif}</div>
-                            </div>
-                            <div className="bg-yellow-400 text-white rounded min-w-28 flex-1 flex flex-col items-center justify-center px-2 py-2 text-center">
-                              <div className="text-xs font-semibold">Netral</div>
-                              <div className="text-2xl font-bold mt-1">{row.netral}</div>
-                            </div>
-                            <div className="bg-red-500 text-white rounded min-w-28 flex-1 flex flex-col items-center justify-center px-2 py-2 text-center">
-                              <div className="text-xs font-semibold">Negatif</div>
-                              <div className="text-2xl font-bold mt-1">{row.negatif}</div>
-                            </div>
-                            <div className="bg-gray-400 text-white rounded min-w-28 flex-1 flex flex-col items-center justify-center px-2 py-2 text-center">
-                              <div className="text-xs font-semibold">None</div>
-                              <div className="text-2xl font-bold mt-1">{row.none}</div>
-                            </div>
+
+                  {/* Statistik */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Statistik</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm">Didirikan:</span>
+                        <span className="text-sm font-medium">{selectedInstansi.tahun_berdiri}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">Total Pegawai:</span>
+                        <span className="text-sm font-medium">{selectedInstansi.total_pegawai.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">Total Peraturan:</span>
+                        <span className="text-sm font-medium">{selectedInstansi.total_peraturan.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">Update Terakhir:</span>
+                        <span className="text-sm font-medium">{selectedInstansi.update_terakhir}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Middle Row - Summary Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  {/* Total Analisis Dokumen */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Analisis Dokumen</CardTitle>
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{selectedInstansi.dm_total_dokumen.toLocaleString()}</div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Rata-rata Skor Kepatuhan */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Rata-rata Skor Kepatuhan</CardTitle>
+                      <Shield className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{selectedInstansi.dm_mean_skor_kepatuhan}%</div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Sentimen Positif */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Sentimen Positif</CardTitle>
+                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{selectedInstansi.dm_mean_sentiment_positive}%</div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Pengguna Aktif */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Pengguna Aktif</CardTitle>
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{selectedInstansi.dm_total_user.toLocaleString()}</div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Bottom Row - Compliance Indicators */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Indikator Compliance Berbasis Dokumen */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Indikator Compliance Berbasis Dokumen</CardTitle>
+                      <p className="text-sm text-muted-foreground">Analisis kepatuhan berdasarkan dokumen yang diunggah</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Prosedural */}
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Prosedural</div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-green-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Sangat Sesuai</div>
+                            <div className="text-lg font-bold">{selectedInstansi.prosedural_class1}</div>
+                          </div>
+                          <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Sesuaikan Sebagian</div>
+                            <div className="text-lg font-bold">{selectedInstansi.prosedural_class2}</div>
+                          </div>
+                          <div className="bg-red-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Tidak Sesuai</div>
+                            <div className="text-lg font-bold">{selectedInstansi.prosedural_class3}</div>
+                          </div>
+                          <div className="bg-gray-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">None</div>
+                            <div className="text-lg font-bold">{selectedInstansi.prosedural_none}</div>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+
+                      {/* Efisiensi Anggaran */}
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Efisiensi Anggaran</div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-green-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Sangat Sesuai</div>
+                            <div className="text-lg font-bold">{selectedInstansi.efisiensi_anggaran_class1}</div>
+                          </div>
+                          <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Sesuaikan Sebagian</div>
+                            <div className="text-lg font-bold">{selectedInstansi.efisiensi_anggaran_class2}</div>
+                          </div>
+                          <div className="bg-red-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Tidak Sesuai</div>
+                            <div className="text-lg font-bold">{selectedInstansi.efisiensi_anggaran_class3}</div>
+                          </div>
+                          <div className="bg-gray-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">None</div>
+                            <div className="text-lg font-bold">{selectedInstansi.efisiensi_anggaran_none}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Transparansi */}
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Transparansi</div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-green-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Sangat Sesuai</div>
+                            <div className="text-lg font-bold">{selectedInstansi.transparansi_class1}</div>
+                          </div>
+                          <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Sesuaikan Sebagian</div>
+                            <div className="text-lg font-bold">{selectedInstansi.transparansi_class2}</div>
+                          </div>
+                          <div className="bg-red-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Tidak Sesuai</div>
+                            <div className="text-lg font-bold">{selectedInstansi.transparansi_class3}</div>
+                          </div>
+                          <div className="bg-gray-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">None</div>
+                            <div className="text-lg font-bold">{selectedInstansi.transparansi_none}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Regulasi */}
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Regulasi</div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-green-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Sangat Sesuai</div>
+                            <div className="text-lg font-bold">{selectedInstansi.regulasi_class1}</div>
+                          </div>
+                          <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Sesuaikan Sebagian</div>
+                            <div className="text-lg font-bold">{selectedInstansi.regulasi_class2}</div>
+                          </div>
+                          <div className="bg-red-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Tidak Sesuai</div>
+                            <div className="text-lg font-bold">{selectedInstansi.regulasi_class3}</div>
+                          </div>
+                          <div className="bg-gray-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">None</div>
+                            <div className="text-lg font-bold">{selectedInstansi.regulasi_none}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Indikator Compliance Berbasis Sentimen Review */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Indikator Compliance Berbasis Sentimen Review</CardTitle>
+                      <p className="text-sm text-muted-foreground">Analisis kepatuhan berdasarkan sentimen dari review dan feedback</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Prosedural */}
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Prosedural</div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-green-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Positif</div>
+                            <div className="text-lg font-bold">{selectedInstansi.prosedural_sentiment_positive}</div>
+                          </div>
+                          <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Netral</div>
+                            <div className="text-lg font-bold">{selectedInstansi.prosedural_sentiment_neutral}</div>
+                          </div>
+                          <div className="bg-red-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Negatif</div>
+                            <div className="text-lg font-bold">{selectedInstansi.prosedural_sentiment_negative}</div>
+                          </div>
+                          <div className="bg-gray-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">None</div>
+                            <div className="text-lg font-bold">{selectedInstansi.prosedural_sentiment_none}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Efisiensi Anggaran */}
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Efisiensi Anggaran</div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-green-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Positif</div>
+                            <div className="text-lg font-bold">{selectedInstansi.efisiensi_anggaran_sentiment_positive}</div>
+                          </div>
+                          <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Netral</div>
+                            <div className="text-lg font-bold">{selectedInstansi.efisiensi_anggaran_sentiment_neutral}</div>
+                          </div>
+                          <div className="bg-red-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Negatif</div>
+                            <div className="text-lg font-bold">{selectedInstansi.efisiensi_anggaran_sentiment_negative}</div>
+                          </div>
+                          <div className="bg-gray-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">None</div>
+                            <div className="text-lg font-bold">{selectedInstansi.efisiensi_anggaran_sentiment_none}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Transparansi */}
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Transparansi</div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-green-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Positif</div>
+                            <div className="text-lg font-bold">{selectedInstansi.transparansi_sentiment_positive}</div>
+                          </div>
+                          <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Netral</div>
+                            <div className="text-lg font-bold">{selectedInstansi.transparansi_sentiment_neutral}</div>
+                          </div>
+                          <div className="bg-red-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Negatif</div>
+                            <div className="text-lg font-bold">{selectedInstansi.transparansi_sentiment_negative}</div>
+                          </div>
+                          <div className="bg-gray-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">None</div>
+                            <div className="text-lg font-bold">{selectedInstansi.transparansi_sentiment_none}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Regulasi */}
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Regulasi</div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-green-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Positif</div>
+                            <div className="text-lg font-bold">{selectedInstansi.regulasi_sentiment_positive}</div>
+                          </div>
+                          <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Netral</div>
+                            <div className="text-lg font-bold">{selectedInstansi.regulasi_sentiment_neutral}</div>
+                          </div>
+                          <div className="bg-red-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">Negatif</div>
+                            <div className="text-lg font-bold">{selectedInstansi.regulasi_sentiment_negative}</div>
+                          </div>
+                          <div className="bg-gray-500 text-white text-center p-2 rounded">
+                            <div className="text-xs">None</div>
+                            <div className="text-lg font-bold">{selectedInstansi.regulasi_sentiment_none}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
                   </Card>
                 </div>
               </>
             )}
-          </main>
+          </div>
         </div>
       </div>
     </ProtectedRoute>
-  );
+  )
 }

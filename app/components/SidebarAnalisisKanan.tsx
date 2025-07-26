@@ -1,17 +1,111 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Home } from "lucide-react";
+import { Home, FileText, Calendar, User } from "lucide-react";
 
-interface HistoryItem {
-  fileName: string;
-  date: string;
+interface AnalysisHistoryItem {
+  id: number;
+  judul_kegiatan: string;
+  created_at: string;
+  user: {
+    name: string;
+  };
+  institution: {
+    name: string;
+  };
+  analysis_files: Array<{
+    original_name: string;
+    file_type: string;
+  }>;
+  score_compliance: number;
+  tingkat_risiko: number;
 }
 
-export default function SidebarAnalisisKanan({ history, onHistoryClick, selectedFile, onAnalisisBaru, sidebarOpen = true }: { history: HistoryItem[]; onHistoryClick?: (fileName: string) => void; selectedFile?: string | null; onAnalisisBaru?: () => void; sidebarOpen?: boolean }) {
+interface SidebarAnalisisKananProps {
+  userId?: number;
+  institutionId?: number;
+  onHistoryClick?: (analysisId: number) => void;
+  selectedAnalysisId?: number | null;
+  onAnalisisBaru?: () => void;
+  sidebarOpen?: boolean;
+}
+
+export default function SidebarAnalisisKanan({
+  userId,
+  institutionId,
+  onHistoryClick,
+  selectedAnalysisId,
+  onAnalisisBaru,
+  sidebarOpen = true
+}: SidebarAnalisisKananProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const filteredHistory = history.filter(h => h.fileName.toLowerCase().includes(searchQuery.toLowerCase()));
+  const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const params = new URLSearchParams();
+        if (userId) params.append('user_id', userId.toString());
+        if (institutionId) params.append('institution_id', institutionId.toString());
+        params.append('limit', '20');
+
+        const response = await fetch(`/api/analysis/history?${params}`);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch analysis history');
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+          setHistory(result.data);
+        } else {
+          throw new Error(result.error || 'Failed to fetch history');
+        }
+      } catch (err) {
+        console.error('Error fetching analysis history:', err);
+        setError(err instanceof Error ? err.message : 'Gagal memuat riwayat');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [userId, institutionId]);
+
+  const filteredHistory = history.filter(h =>
+    h.judul_kegiatan.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    h.user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getRiskLevelColor = (tingkatRisiko: number) => {
+    if (tingkatRisiko <= 1) return 'text-green-600';
+    if (tingkatRisiko <= 2) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getRiskLevelText = (tingkatRisiko: number) => {
+    if (tingkatRisiko <= 1) return 'Rendah';
+    if (tingkatRisiko <= 2) return 'Sedang';
+    return 'Tinggi';
+  };
 
   return (
     <aside className="w-full max-w-xs p-4 space-y-6 border-l bg-card text-card-foreground min-h-screen flex flex-col">
@@ -32,6 +126,7 @@ export default function SidebarAnalisisKanan({ history, onHistoryClick, selected
             )}
           </Button>
         </Link>
+
         <section>
           <h2 className="font-semibold mb-2">Fitur Analisis</h2>
           <ul className="text-sm space-y-2">
@@ -49,6 +144,7 @@ export default function SidebarAnalisisKanan({ history, onHistoryClick, selected
             </li>
           </ul>
         </section>
+
         <section>
           <h2 className="font-semibold mb-2">Riwayat Analisis Dokumen</h2>
           <Input
@@ -57,19 +153,49 @@ export default function SidebarAnalisisKanan({ history, onHistoryClick, selected
             onChange={e => setSearchQuery(e.target.value)}
             className="mb-2"
           />
-          {filteredHistory.length === 0 ? (
+
+          {isLoading ? (
+            <div className="text-sm text-muted-foreground">Memuat riwayat...</div>
+          ) : error ? (
+            <div className="text-sm text-red-600">{error}</div>
+          ) : filteredHistory.length === 0 ? (
             <div className="text-sm text-muted-foreground">Tidak ada riwayat ditemukan.</div>
           ) : (
-            <div className="max-h-60 overflow-y-auto">
+            <div className="max-h-96 overflow-y-auto">
               <ul className="divide-y divide-border">
-                {filteredHistory.map((h, i) => (
+                {filteredHistory.map((item) => (
                   <li
-                    key={i}
-                    className={`py-2 flex items-center gap-3 cursor-pointer rounded transition-colors ${selectedFile === h.fileName ? 'bg-muted font-semibold' : 'hover:bg-muted'}`}
-                    onClick={() => onHistoryClick && onHistoryClick(h.fileName)}
+                    key={item.id}
+                    className={`py-3 flex flex-col gap-2 cursor-pointer rounded transition-colors ${selectedAnalysisId === item.id ? 'bg-muted font-semibold' : 'hover:bg-muted'}`}
+                    onClick={() => onHistoryClick && onHistoryClick(item.id)}
                   >
-                    <span className="font-mono text-xs bg-muted px-2 py-1 rounded">{h.date}</span>
-                    <span className="text-sm">{h.fileName}</span>
+                    <div className="flex items-center gap-2">
+                      <FileText size={16} className="text-muted-foreground" />
+                      <span className="text-sm font-medium truncate">{item.judul_kegiatan}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Calendar size={12} />
+                      <span>{formatDate(item.created_at)}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <User size={12} />
+                      <span>{item.user.name}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs">
+                        Skor: <span className="font-medium">{Math.round(item.score_compliance * 100)}%</span>
+                      </span>
+                      <span className={`text-xs font-medium ${getRiskLevelColor(item.tingkat_risiko)}`}>
+                        Risiko: {getRiskLevelText(item.tingkat_risiko)}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground">
+                      {item.analysis_files.length} file
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -77,6 +203,7 @@ export default function SidebarAnalisisKanan({ history, onHistoryClick, selected
           )}
         </section>
       </div>
+
       {/* Menu Analisis Baru di bawah */}
       <div className="pt-4 mt-auto border-t">
         <Button variant="default" className="w-full cursor-pointer" onClick={onAnalisisBaru}>

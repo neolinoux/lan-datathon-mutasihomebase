@@ -23,14 +23,6 @@ export async function GET(request: NextRequest) {
           }
         }
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        is_active: true,
-        institution: true
-      }
     })
 
     if (!user) {

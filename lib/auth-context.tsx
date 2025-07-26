@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import Cookies from 'js-cookie'
 
 interface User {
   id: number
@@ -75,14 +76,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('auth_token')
         setToken(null)
         setUser(null)
+      } else if (response.status === 500) {
+        // Server error, likely database connection issue
+        console.error('Server error during token verification:', response.status)
+        // Clear token to force re-login
+        localStorage.removeItem('auth_token')
+        setToken(null)
+        setUser(null)
       } else {
         // Other errors, keep token but log error
         console.error('Token verification error:', response.status)
       }
     } catch (error) {
       console.error('Token verification failed:', error)
-      // Network error, keep token for now
-      // Only clear if it's a persistent network issue
+      // Network error or server down, clear token to force re-login
+      localStorage.removeItem('auth_token')
+      setToken(null)
+      setUser(null)
     } finally {
       setIsLoading(false)
     }
@@ -103,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(data.token)
         setUser(data.user)
         localStorage.setItem('auth_token', data.token)
+        Cookies.set('auth_token', data.token) // Set token ke cookies
         return true
       } else {
         const error = await response.json()
@@ -119,6 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null)
     setUser(null)
     localStorage.removeItem('auth_token')
+    Cookies.remove('auth_token') // Hapus token dari cookies
   }
 
   return (

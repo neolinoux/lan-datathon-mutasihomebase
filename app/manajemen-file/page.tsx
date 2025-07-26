@@ -1,102 +1,121 @@
-"use client";
+"use client"
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
-import { Menu, FileText, User, LogOut, Home, Search, Filter, File, Building2, ChevronRight, ChevronLeft, Users, History } from "lucide-react";
-import Link from "next/link";
-import { ModeToggle } from "@/components/toggle-dark-mode";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/lib/auth-context";
-import ProtectedRoute from "@/components/protected-route";
-import AddUserModal from "@/components/AddUserModal";
-import EditUserModal from "@/components/EditUserModal";
-import DeleteUserModal from "@/components/DeleteUserModal";
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/lib/auth-context"
+import ProtectedRoute from "@/components/protected-route"
+import { LogOut, FileText, Download, Trash2, Edit, Search, Filter, Plus, Menu, User, Home, Building2, ChevronRight, ChevronLeft, Users, History } from "lucide-react"
+import { ModeToggle } from "@/components/toggle-dark-mode"
+import Link from "next/link"
+import UploadDocumentModal from "@/components/UploadDocumentModal"
+import DocumentPreview from "@/components/DocumentPreview"
+import EditDocumentModal from "@/components/EditDocumentModal"
+import DownloadDocument from "@/components/DownloadDocument"
+import DeleteDocumentModal from "@/components/DeleteDocumentModal"
 
-const INSTANSIS = [
-  "BPS",
-  "Kemenkeu",
-  "Kemendagri"
-];
-
-interface User {
+interface Document {
   id: number
-  name: string
-  email: string
-  role: string
-  is_active: boolean
-  institution?: {
+  title: string
+  description: string
+  filename: string
+  file_path: string
+  file_size: number
+  file_type: string
+  created_at: string
+  institution: {
     id: number
     name: string
   }
-  created_at: string
+  uploaded_by_user: {
+    id: number
+    name: string
+    email: string
+  }
 }
 
-export default function ManajemenPenggunaPage() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [instansi, setInstansi] = useState(INSTANSIS[0]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterRole, setFilterRole] = useState<string>("all");
-  const { user, logout, token } = useAuth();
+const INSTANSIS = ["BPS", "Kemenkeu", "Kemendagri"]
+
+export default function ManajemenFilePage() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [instansi, setInstansi] = useState(INSTANSIS[0])
+  const [documents, setDocuments] = useState<Document[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterType, setFilterType] = useState<string>("all")
+  const { user, logout, token } = useAuth()
 
   useEffect(() => {
     if (token) {
-      fetchUsers();
+      fetchDocuments()
     }
-  }, [token]);
+  }, [token, instansi])
 
-  const fetchUsers = async () => {
+  const fetchDocuments = async () => {
     try {
-      setLoading(true);
-      const response = await fetch('/api/users', {
+      setLoading(true)
+      const response = await fetch(`/api/documents?institutionId=${getInstitutionId(instansi)}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
-      });
+      })
       if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
+        const data = await response.json()
+        setDocuments(data)
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching documents:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  const getInstitutionId = (name: string) => {
+    // This should match your database institution IDs
+    const institutionMap: Record<string, number> = {
+      "BPS": 1,
+      "Kemenkeu": 2,
+      "Kemendagri": 3
+    }
+    return institutionMap[name] || 1
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  const getFileIcon = (fileType: string) => {
+    if (fileType.includes('pdf')) return '📄'
+    if (fileType.includes('word')) return '📝'
+    if (fileType.includes('excel')) return '📊'
+    return '📄'
+  }
+
+  const filteredDocuments = documents.filter(doc => {
+    const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.filename.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesFilter = filterType === "all" || doc.file_type.includes(filterType)
+    return matchesSearch && matchesFilter
+  })
 
   const handleLogout = () => {
-    logout();
-  };
+    logout()
+  }
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = filterRole === "all" || user.role === filterRole
-    return matchesSearch && matchesFilter
-  });
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-red-100 text-red-800'
-      case 'operator':
-        return 'bg-blue-100 text-blue-800'
-      case 'viewer':
-        return 'bg-gray-100 text-gray-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  };
 
   return (
-    <ProtectedRoute requiredRole="admin">
+    <ProtectedRoute>
       <div className="flex min-h-screen bg-background">
         {/* Sidebar kiri collapsable */}
-        <aside className={`transition-all duration-200 border-r bg-card flex flex-col ${sidebarCollapsed ? 'w-18' : 'w-64'} h-screen min-h-screen p-0`}>
+        <aside className={`transition-all duration-200 border-r bg-card flex flex-col ${sidebarCollapsed ? 'w-16' : 'w-64'} h-screen min-h-screen p-0`}>
           <div className="flex flex-col h-full justify-between">
             {/* Burger button di kanan atas sidebar */}
             <div className="flex items-center justify-between p-4 border-b">
@@ -152,7 +171,7 @@ export default function ManajemenPenggunaPage() {
 
               <Link href="/manajemen-file">
                 <Button
-                  variant="outline"
+                  variant="default"
                   className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
                 >
                   <FileText className="h-4 w-4 mr-2" />
@@ -160,11 +179,10 @@ export default function ManajemenPenggunaPage() {
                 </Button>
               </Link>
 
-
               {user?.role === 'admin' && (
                 <Link href="/manajemen-pengguna">
                   <Button
-                    variant="default"
+                    variant="outline"
                     className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
                   >
                     <Users className="h-4 w-4 mr-2" />
@@ -172,16 +190,16 @@ export default function ManajemenPenggunaPage() {
                   </Button>
                 </Link>
               )}
-
             </div>
             <div />
           </div>
         </aside>
+
         {/* Konten utama */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Navbar atas */}
           <nav className="w-full bg-card border-b px-8 py-4 flex items-center justify-between">
-            <div className="text-lg font-semibold">Manajemen Pengguna</div>
+            <div className="text-lg font-semibold">Manajemen File</div>
             <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -209,16 +227,20 @@ export default function ManajemenPenggunaPage() {
               <ModeToggle />
             </div>
           </nav>
+
           <main className="flex-1 p-6 space-y-4">
-            <Card className="p-6 max-w-6xl mx-auto">
+            <Card className="p-6 max-w-7xl mx-auto">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <div className="font-semibold text-xl">Daftar Pengguna</div>
+                  <div className="font-semibold text-xl">Daftar Dokumen</div>
                   <div className="text-sm text-muted-foreground">
-                    Kelola pengguna dan hak akses sistem ({filteredUsers.length} pengguna)
+                    Kelola dokumen yang telah diunggah ({filteredDocuments.length} dokumen)
                   </div>
                 </div>
-                <AddUserModal onUserAdded={fetchUsers} />
+                <UploadDocumentModal
+                  onUploadSuccess={fetchDocuments}
+                  institutionId={getInstitutionId(instansi)}
+                />
               </div>
 
               {/* Search and Filter */}
@@ -226,7 +248,7 @@ export default function ManajemenPenggunaPage() {
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    placeholder="Cari pengguna..."
+                    placeholder="Cari dokumen..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -236,39 +258,42 @@ export default function ManajemenPenggunaPage() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="flex items-center gap-2">
                       <Filter className="h-4 w-4" />
-                      Filter: {filterRole === "all" ? "Semua Role" : filterRole}
+                      Filter: {filterType === "all" ? "Semua" : filterType}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setFilterRole("all")}>
-                      Semua Role
+                    <DropdownMenuItem onClick={() => setFilterType("all")}>
+                      Semua File
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterRole("admin")}>
-                      Admin
+                    <DropdownMenuItem onClick={() => setFilterType("pdf")}>
+                      PDF
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterRole("user")}>
-                      User
+                    <DropdownMenuItem onClick={() => setFilterType("word")}>
+                      Word
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFilterType("excel")}>
+                      Excel
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
 
-              {/* Users Table */}
+              {/* Documents Table */}
               {loading ? (
                 <div className="flex items-center justify-center h-64">
                   <div className="text-center">
                     <div className="text-lg font-semibold mb-2">Loading...</div>
-                    <div className="text-sm text-muted-foreground">Memuat daftar pengguna</div>
+                    <div className="text-sm text-muted-foreground">Memuat daftar dokumen</div>
                   </div>
                 </div>
-              ) : filteredUsers.length === 0 ? (
+              ) : filteredDocuments.length === 0 ? (
                 <div className="flex items-center justify-center h-64">
                   <div className="text-center">
-                    <div className="text-lg font-semibold mb-2">Tidak ada pengguna</div>
+                    <div className="text-lg font-semibold mb-2">Tidak ada dokumen</div>
                     <div className="text-sm text-muted-foreground">
-                      {searchQuery || filterRole !== "all"
+                      {searchQuery || filterType !== "all"
                         ? "Coba ubah filter atau kata kunci pencarian"
-                        : "Belum ada pengguna yang terdaftar"}
+                        : "Belum ada dokumen yang diunggah untuk instansi ini"}
                     </div>
                   </div>
                 </div>
@@ -277,42 +302,49 @@ export default function ManajemenPenggunaPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b">
-                        <th className="py-3 text-left font-semibold">Nama</th>
-                        <th className="py-3 text-left font-semibold">Email</th>
-                        <th className="py-3 text-left font-semibold">Role</th>
-                        <th className="py-3 text-left font-semibold">Instansi</th>
-                        <th className="py-3 text-left font-semibold">Status</th>
-                        <th className="py-3 text-left font-semibold">Tanggal Dibuat</th>
+                        <th className="py-3 text-left font-semibold">Dokumen</th>
+                        <th className="py-3 text-left font-semibold">Deskripsi</th>
+                        <th className="py-3 text-left font-semibold">Ukuran</th>
+                        <th className="py-3 text-left font-semibold">Diunggah Oleh</th>
+                        <th className="py-3 text-left font-semibold">Tanggal</th>
                         <th className="py-3 text-left font-semibold">Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredUsers.map((user) => (
-                        <tr key={user.id} className="border-b hover:bg-muted">
-                          <td className="py-3 font-medium">{user.name}</td>
-                          <td className="py-3">{user.email}</td>
+                      {filteredDocuments.map((doc) => (
+                        <tr key={doc.id} className="border-b hover:bg-muted">
                           <td className="py-3">
-                            <Badge className={getRoleBadgeColor(user.role)}>
-                              {user.role}
-                            </Badge>
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">{getFileIcon(doc.file_type)}</span>
+                              <div>
+                                <div className="font-medium">{doc.title}</div>
+                                <div className="text-xs text-muted-foreground">{doc.filename}</div>
+                              </div>
+                            </div>
                           </td>
                           <td className="py-3">
-                            {user.institution?.name || '-'}
+                            <div className="max-w-xs truncate">{doc.description}</div>
                           </td>
                           <td className="py-3">
-                            <Badge variant={user.is_active ? "default" : "secondary"}>
-                              {user.is_active ? 'Aktif' : 'Nonaktif'}
-                            </Badge>
+                            <Badge variant="secondary">{formatFileSize(doc.file_size)}</Badge>
+                          </td>
+                          <td className="py-3">
+                            <div>
+                              <div className="font-medium">{doc.uploaded_by_user.name}</div>
+                              <div className="text-xs text-muted-foreground">{doc.uploaded_by_user.email}</div>
+                            </div>
                           </td>
                           <td className="py-3">
                             <div className="text-sm">
-                              {new Date(user.created_at).toLocaleDateString('id-ID')}
+                              {new Date(doc.created_at).toLocaleDateString('id-ID')}
                             </div>
                           </td>
                           <td className="py-3">
                             <div className="flex gap-2">
-                              <EditUserModal user={user} onUserUpdated={fetchUsers} />
-                              <DeleteUserModal user={user} onUserDeleted={fetchUsers} />
+                              <DocumentPreview document={doc} />
+                              <DownloadDocument document={doc} />
+                              <EditDocumentModal document={doc} onEditSuccess={fetchDocuments} />
+                              <DeleteDocumentModal document={doc} onDeleteSuccess={fetchDocuments} />
                             </div>
                           </td>
                         </tr>
@@ -326,5 +358,5 @@ export default function ManajemenPenggunaPage() {
         </div>
       </div>
     </ProtectedRoute>
-  );
+  )
 } 
