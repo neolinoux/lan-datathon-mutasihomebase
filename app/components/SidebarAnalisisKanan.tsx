@@ -23,7 +23,10 @@ export default function SidebarAnalisisKanan({ history, onHistoryClick, selected
             className={`w-full font-semibold text-left border border-border rounded-lg mb-2 cursor-pointer ${sidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'} hover:bg-muted focus:bg-muted transition-colors`}
           >
             {sidebarOpen ? (
-              <span>Kembali ke Dashboard</span>
+              <div className="flex items-center gap-2">
+                <Home size={22} />
+                <span className="text-sm">Dashboard</span>
+              </div>
             ) : (
               <Home size={22} />
             )}

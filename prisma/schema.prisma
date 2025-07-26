@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  name           String
+  email          String   @unique
+  password_hash  String
+  role           Role     @default(viewer)
+  institution_id Int?
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  // Relations
+  institution      Institution?     @relation(fields: [institution_id], references: [id])
+  documents        Document[]
+  analysis_results AnalysisResult[]
+
+  @@map("users")
+}
+
+model Institution {
+  id               Int      @id @default(autoincrement())
+  name             String
+  full_name        String?
+  category         String?
+  address          String?
+  phone            String?
+  email            String?
+  website          String?
+  established_year Int?
+  total_employees  Int?
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  // Relations
+  users                 User[]
+  documents             Document[]
+  analysis_results      AnalysisResult[]
+  compliance_indicators ComplianceIndicator[]
+
+  @@map("institutions")
+}
+
+model Document {
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String?
+  filename       String
+  file_path      String
+  file_size      Int?
+  file_type      String?
+  institution_id Int
+  uploaded_by    Int
+  created_at     DateTime @default(now())
+
+  // Relations
+  institution      Institution      @relation(fields: [institution_id], references: [id])
+  uploaded_by_user User             @relation(fields: [uploaded_by], references: [id])
+  analysis_results AnalysisResult[]
+
+  @@map("documents")
+}
+
+model AnalysisResult {
+  id              Int          @id @default(autoincrement())
+  document_id     Int
+  institution_id  Int
+  analysis_type   AnalysisType
+  result_data     Json
+  ai_model_used   String?
+  processing_time Int?
+  created_at      DateTime     @default(now())
+
+  // Relations
+  document    Document    @relation(fields: [document_id], references: [id])
+  institution Institution @relation(fields: [institution_id], references: [id])
+  User        User?       @relation(fields: [userId], references: [id])
+  userId      Int?
+
+  @@map("analysis_results")
+}
+
+model ComplianceIndicator {
+  id              Int           @id @default(autoincrement())
+  institution_id  Int
+  indicator_name  String
+  indicator_type  IndicatorType
+  sangat_sesuai   Int           @default(0)
+  sebagian_sesuai Int           @default(0)
+  tidak_sesuai    Int           @default(0)
+  none_count      Int           @default(0)
+  calculated_at   DateTime      @default(now())
+
+  // Relations
+  institution Institution @relation(fields: [institution_id], references: [id])
+
+  @@unique([institution_id, indicator_name])
+  @@map("compliance_indicators")
+}
+
+enum Role {
+  admin
+  operator
+  viewer
+}
+
+enum AnalysisType {
+  compliance
+  sentiment
+  recommendation
+}
+
+enum IndicatorType {
+  document
+  sentiment
+}
