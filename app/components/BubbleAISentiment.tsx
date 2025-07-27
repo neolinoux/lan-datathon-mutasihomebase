@@ -9,6 +9,7 @@ interface SentimentData {
   confidence: number
   riskLevel: 'rendah' | 'sedang' | 'tinggi'
   recommendations: Recommendation[]
+  tingkat_risiko: number
 }
 
 interface Recommendation {
@@ -65,24 +66,6 @@ interface BubbleAISentimentProps {
 }
 
 export default function BubbleAISentiment({ sentimentData, fileName, analysisData, error }: BubbleAISentimentProps) {
-  const getRiskLevelColor = (level: string) => {
-    switch (level) {
-      case 'rendah': return 'text-green-600'
-      case 'sedang': return 'text-yellow-600'
-      case 'tinggi': return 'text-red-600'
-      default: return 'text-gray-600'
-    }
-  }
-
-  const getSentimentColor = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positif': return 'text-green-600'
-      case 'negatif': return 'text-red-600'
-      case 'netral': return 'text-yellow-600'
-      default: return 'text-gray-600'
-    }
-  }
-
   const getRiskLevelColorBadge = (level: string) => {
     switch (level) {
       case 'rendah': return 'bg-green-100 text-green-800'
@@ -92,12 +75,12 @@ export default function BubbleAISentiment({ sentimentData, fileName, analysisDat
     }
   }
 
-  const getImpactColor = (impact: string) => {
-    switch (impact) {
-      case 'rendah': return 'text-green-600'
-      case 'sedang': return 'text-yellow-600'
-      case 'tinggi': return 'text-red-600'
-      default: return 'text-gray-600'
+  const getTingkatRisikoColorBadge = (level: number) => {
+    switch (level) {
+      case 1: return 'bg-green-100 text-green-800'
+      case 2: return 'bg-yellow-100 text-yellow-800'
+      case 3: return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -105,20 +88,7 @@ export default function BubbleAISentiment({ sentimentData, fileName, analysisDat
   const getSentimentFromAPI = () => {
     if (!analysisData || !analysisData.data_response) return null;
 
-    const score = analysisData.data_response.summary_indicator_compliance.score_compliance;
-    let sentiment: 'positif' | 'negatif' | 'netral';
-    let riskLevel: 'rendah' | 'sedang' | 'tinggi';
-
-    if (score >= 0.7) {
-      sentiment = 'positif';
-      riskLevel = 'rendah';
-    } else if (score >= 0.4) {
-      sentiment = 'netral';
-      riskLevel = 'sedang';
-    } else {
-      sentiment = 'negatif';
-      riskLevel = 'tinggi';
-    }
+    const tingkat_risiko = analysisData.data_response.summary_indicator_compliance.tingkat_risiko;
 
     const recommendations = analysisData.data_response.rekomendasi_per_indikator.map((rec, index) => ({
       id: `rec-${rec.id_indikator}`,
@@ -129,14 +99,12 @@ export default function BubbleAISentiment({ sentimentData, fileName, analysisDat
       steps: rec.langkah_rekomendasi,
       priority: rec.id_indikator,
       estimatedTime: `${rec.id_indikator}-${rec.id_indikator + 1} bulan`,
-      impact: rec.id_indikator <= 2 ? 'tinggi' : rec.id_indikator <= 4 ? 'sedang' : 'rendah'
+      impact: rec.id_indikator <= 2 ? 'tinggi' : rec.id_indikator <= 4 ? 'sedang' : 'rendah',
     }));
 
     return {
-      sentiment,
-      confidence: Math.round(score * 100),
-      riskLevel,
-      recommendations
+      recommendations,
+      tingkat_risiko
     };
   };
 
@@ -179,16 +147,9 @@ export default function BubbleAISentiment({ sentimentData, fileName, analysisDat
       <div className="flex flex-col gap-6 w-full max-w-xl">
         <Card className="p-5 border-l-4 border-yellow-400 bg-muted text-card-foreground flex flex-col gap-4">
           <div className="flex items-center gap-2 mb-2">
-            <span className="font-semibold text-base flex-1">Analisis Sentimen</span>
-            <Badge className={`${getSentimentColor(finalSentimentData.sentiment)} font-bold`}>
-              {finalSentimentData.sentiment.charAt(0).toUpperCase() + finalSentimentData.sentiment.slice(1)}
-            </Badge>
-            <span className="text-xs text-muted-foreground">Kepercayaan: {finalSentimentData.confidence}%</span>
-          </div>
-          <div className="flex items-center gap-2 mb-2">
             <span className="text-sm">Tingkat Risiko:</span>
-            <Badge className={`${getRiskLevelColorBadge(finalSentimentData.riskLevel)} font-bold`}>
-              {finalSentimentData.riskLevel.charAt(0).toUpperCase() + finalSentimentData.riskLevel.slice(1)}
+            <Badge className={`${getTingkatRisikoColorBadge(finalSentimentData?.tingkat_risiko || 0)} font-bold`}>
+              {finalSentimentData?.tingkat_risiko === 1 ? 'Rendah' : finalSentimentData?.tingkat_risiko === 2 ? 'Sedang' : 'Tinggi'}
             </Badge>
           </div>
           {fileName && (
@@ -196,7 +157,6 @@ export default function BubbleAISentiment({ sentimentData, fileName, analysisDat
               Dokumen: {fileName}
             </div>
           )}
-          <div className="font-semibold mb-2 text-sm">Rekomendasi Perbaikan ({sortedRecommendations.length})</div>
           {sortedRecommendations.map((rec) => (
             <Card key={rec.id} className="p-4 border-l-4 border-yellow-400 bg-card text-card-foreground flex flex-col gap-2 mb-2">
               <div className="flex items-center gap-2 mb-1">
