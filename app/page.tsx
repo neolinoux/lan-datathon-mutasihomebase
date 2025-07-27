@@ -8,7 +8,7 @@ import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { ModeToggle } from '@/components/toggle-dark-mode'
-import WordCloud from '@/components/WordCloud'
+// import WordCloud from '@/components/WordCloud'
 
 // Interface untuk struktur data instansi
 interface InstansiData {
@@ -475,7 +475,7 @@ export default function DashboardPage() {
                 </Card>
               </div>
 
-              <div className="w-full h-auto bg-card">
+              {/* <div className="w-full h-auto bg-card">
                 <div className="border-2 rounded-md p-4 mb-8 w-full flex flex-col items-start">
                   <div className="flex items-center gap-2">
                     <Cloud className="h-8 w-8 text-muted-foreground" fill='currentColor' />
@@ -490,7 +490,7 @@ export default function DashboardPage() {
                     />
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Bottom Row - Compliance Indicators */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
