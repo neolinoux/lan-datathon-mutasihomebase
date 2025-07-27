@@ -1,14 +1,14 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, Building2, Users, FileText, Sun, Moon, Home, Shield, TrendingUp, History, LogOut } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Building2, Users, FileText, Home, Shield, TrendingUp, History, LogOut, Cloud, DollarSign } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import ProtectedRoute from '@/components/protected-route'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { ModeToggle } from '@/components/toggle-dark-mode'
+import WordCloud from '@/components/WordCloud'
 
 // Interface untuk struktur data instansi
 interface InstansiData {
@@ -94,10 +94,20 @@ export default function DashboardPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [selectedInstansi, setSelectedInstansi] = useState<InstansiData | null>(null)
   const [instansiList, setInstansiList] = useState<InstansiData[]>([])
-  const { theme, setTheme } = useTheme()
   const { user, logout, token } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const sampleWords = [
+    { word: 'Next.js', weight: 40 },
+    { word: 'React', weight: 30 },
+    { word: 'JavaScript', weight: 20 },
+    { word: 'Chart.js', weight: 10 },
+    { word: 'Frontend', weight: 5 },
+    { word: 'Web', weight: 2 },
+    { word: 'OpenAI', weight: 1 },
+    { word: 'AI', weight: 1 },
+  ];
 
   useEffect(() => {
     // Fetch data instansi dari API lokal (yang akan mengambil dari external API)
@@ -133,7 +143,7 @@ export default function DashboardPage() {
           const userInstansi = data.find(inst => inst.id_instansi === user?.institution?.id)
           setSelectedInstansi(userInstansi || data[0])
         } else {
-          // For non-authenticated users, show first institution
+          // For non-authenticated users, show first institution by default
           setSelectedInstansi(data[0])
         }
       } catch (err) {
@@ -145,9 +155,9 @@ export default function DashboardPage() {
         setIsLoading(false)
       }
     }
-    fetchInstansiData()
-  }, [user, token])
 
+    fetchInstansiData()
+  }, [user, token]) // Add user and token to dependency array
 
   if (isLoading) {
     return (
@@ -251,6 +261,15 @@ export default function DashboardPage() {
                 </Link>
               </>
             )}
+            <Link href="/daftar-harga">
+              <Button
+                variant="outline"
+                className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+              >
+                <DollarSign className="h-4 w-4 mr-2" />
+                {!sidebarCollapsed && "Daftar Harga"}
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -314,12 +333,33 @@ export default function DashboardPage() {
                   </div>
                 </>
               ) : (
-                /* Show login button for non-authenticated users */
-                <Link href="/login">
-                  <Button variant="default" size="sm">
-                    Login
-                  </Button>
-                </Link>
+                /* Show instansi selector and login button for non-authenticated users */
+                <>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">Instansi:</span>
+                    <select
+                      value={selectedInstansi.id_instansi}
+                      onChange={(e) => {
+                        const selected = instansiList.find(inst => inst.id_instansi === parseInt(e.target.value))
+                        setSelectedInstansi(selected || instansiList[0])
+                      }}
+                      className="px-3 py-1 border rounded-md text-sm bg-background"
+                      disabled={isLoading}
+                    >
+                      {isLoading && <option>Loading...</option>}
+                      {instansiList.map((instansi) => (
+                        <option key={instansi.id_instansi} value={instansi.id_instansi}>
+                          {instansi.nama_instansi}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Link href="/login">
+                    <Button variant="default" size="sm">
+                      Login
+                    </Button>
+                  </Link>
+                </>
               )}
 
               <ModeToggle />
@@ -433,6 +473,23 @@ export default function DashboardPage() {
                     <div className="text-2xl font-bold">{selectedInstansi.total_user}</div>
                   </CardContent>
                 </Card>
+              </div>
+
+              <div className="w-full h-auto bg-card">
+                <div className="border-2 rounded-md p-4 mb-8 w-full flex flex-col items-start">
+                  <div className="flex items-center gap-2">
+                    <Cloud className="h-8 w-8 text-muted-foreground" fill='currentColor' />
+                    <h1 className="text-2xl font-bold">Word Cloud Sentimen Publik terhadap Instansi {selectedInstansi.nama_instansi}</h1>
+                  </div>
+                  <div className="p-4 mb-8 w-full flex flex-col items-center justify-center">
+                    <WordCloud
+                      words={sampleWords.map(word => ({
+                        text: word.word,
+                        value: word.weight
+                      }))}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Bottom Row - Compliance Indicators */}

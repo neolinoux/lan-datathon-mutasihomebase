@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react'
 import Cookies from 'js-cookie'
 
 interface User {
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -120,17 +120,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Login error:', error)
       return false
     }
-  }
+  }, [])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setToken(null)
     setUser(null)
     localStorage.removeItem('auth_token')
     Cookies.remove('auth_token') // Hapus token dari cookies
-  }
+  }, [])
+
+  const contextValue = useMemo(() => ({
+    user,
+    token,
+    login,
+    logout,
+    isLoading,
+  }), [user, token, isLoading, login, logout])
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   )

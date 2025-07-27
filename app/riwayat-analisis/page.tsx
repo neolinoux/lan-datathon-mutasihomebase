@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/toggle-dark-mode";
-import { LogOut, FileText, Calendar, User, Search, Filter, Download, Eye, Users, Building2, ChevronRight, ChevronLeft, Home, History } from "lucide-react";
+import { LogOut, FileText, Calendar, User, Search, Filter, Download, Eye, Users, Building2, ChevronRight, ChevronLeft, Home, History, DollarSign } from "lucide-react";
 import Link from "next/link";
 import ProtectedRoute from "@/components/protected-route";
 
@@ -208,6 +208,16 @@ export default function RiwayatAnalisisPage() {
               >
                 <History className="h-4 w-4 mr-2" />
                 {!sidebarCollapsed && "Riwayat Analisis"}
+              </Button>
+            </Link>
+
+            <Link href="/daftar-harga">
+              <Button
+                variant="outline"
+                className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+              >
+                <DollarSign className="h-4 w-4 mr-2" />
+                {!sidebarCollapsed && "Daftar Harga"}
               </Button>
             </Link>
 
