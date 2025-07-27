@@ -173,7 +173,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full bg-card border-r transition-all duration-300 z-50 ${sidebarCollapsed ? 'w-18' : 'w-64'}`}>
+      <div className={`fixed left-0 top-0 h-full bg-card border-r z-50 ${sidebarCollapsed ? 'w-18' : 'w-64'}`}>
         <div className="flex flex-col h-full">
           {/* Burger Button */}
           <div className="flex items-center justify-between p-4 border-b">
