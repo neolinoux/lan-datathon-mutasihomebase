@@ -13,16 +13,6 @@ export async function POST(request: NextRequest) {
     const userId = parseInt(formData.get('user_id') as string)
     const institutionId = parseInt(formData.get('institution_id') as string)
 
-    console.log('Save API - Received data:', {
-      userId,
-      institutionId,
-      filesCount: files.length,
-      analysisResultKeys: Object.keys(analysisResult)
-    })
-
-    // Log the full analysis result structure
-    console.log('Analysis result structure:', JSON.stringify(analysisResult, null, 2))
-
     // Extract data from API response with better error handling
     let id_dokumen, judul_kegiatan, deskripsi_kegiatan, include_dok_keuangan, path_dok_kegiatan, path_dok_keuangan
     let list_peraturan_terkait, indikator_compliance, summary_indicator_compliance, rekomendasi_per_indikator

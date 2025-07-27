@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, Building2, Users, FileText, Home, Shield, TrendingUp, History, LogOut, Cloud, DollarSign, LogIn, RefreshCw } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Building2, Users, FileText, Home, Shield, TrendingUp, History, LogOut, Cloud, DollarSign, LogIn, RefreshCw, Calendar, MapPin, Phone, Mail, Globe } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
@@ -122,13 +122,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchInstansiData = async () => {
-      console.log('Fetching instansi data...', { user: user?.email, role: user?.role })
       setIsLoading(true)
       setError(null)
 
       try {
         const response = await fetch('/api/instansi')
-        console.log('API response status:', response.status)
 
         if (!response.ok) {
           const errorData = await response.json()
@@ -136,7 +134,6 @@ export default function DashboardPage() {
         }
 
         const data: InstansiData[] = await response.json()
-        console.log('API response data length:', data.length)
 
         if (!Array.isArray(data)) {
           throw new Error('API returned non-array data')
@@ -150,7 +147,6 @@ export default function DashboardPage() {
         }
 
         setInstansiList(data)
-        console.log('Instansi list set, length:', data.length)
 
         // Set selected instansi with better fallback logic
         if (user?.role === 'admin') {
@@ -164,7 +160,6 @@ export default function DashboardPage() {
           // Non-authenticated user - show first instansi
           setSelectedInstansi(data[0])
         }
-        console.log('Selected instansi set:', data[0]?.nama_instansi)
       } catch (err) {
         console.error('Error fetching instansi data:', err)
         setError(err instanceof Error ? err.message : 'Gagal memuat data instansi')
@@ -172,7 +167,6 @@ export default function DashboardPage() {
         setSelectedInstansi(null)
       } finally {
         setIsLoading(false)
-        console.log('Loading finished')
       }
     }
 
@@ -316,7 +310,7 @@ export default function DashboardPage() {
         <div className="bg-card border-b">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold">Riwayat Analisis Dokumen</h1>
+              <h1 className="text-2xl font-bold">Dashboard</h1>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -706,30 +700,47 @@ export default function DashboardPage() {
         </div>
 
         <div className='px-8 py-8'>
-          {/* Instansi Info Card */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="lg:col-span-2">
+          {/* Top Section - Information and Statistics */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Informasi Instansi */}
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Building2 className="h-5 w-5 mr-2" />
-                  Informasi Instansi
+                <CardTitle className="text-lg">
+                  <div className="flex items-center">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    <span>Informasi Instansi</span>
+                  </div>
                 </CardTitle>
+                <p className="text-sm text-muted-foreground">Detail lengkap instansi yang sedang dimonitor</p>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="font-semibold">{currentInstansi?.nama_instansi || 'N/A'}</div>
                 <div className="text-sm text-muted-foreground">
                   <div>Status: {currentInstansi?.status_lembaga || 'N/A'}</div>
-                  <div>Alamat: {currentInstansi?.alamat || 'N/A'}</div>
-                  <div>Telepon: {currentInstansi?.no_telp || 'N/A'}</div>
-                  <div>Email: {currentInstansi?.email || 'N/A'}</div>
-                  <div>Website: {currentInstansi?.website || 'N/A'}</div>
+                  <div className="flex items-center mt-2">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    <span>{currentInstansi?.alamat || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center mt-1">
+                    <Phone className="h-4 w-4 mr-2" />
+                    <span>{currentInstansi?.no_telp || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center mt-1">
+                    <Mail className="h-4 w-4 mr-2" />
+                    <span>{currentInstansi?.email || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center mt-1">
+                    <Globe className="h-4 w-4 mr-2" />
+                    <span>{currentInstansi?.website || 'N/A'}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Statistik */}
             <Card>
               <CardHeader>
-                <CardTitle>Detail Instansi</CardTitle>
+                <CardTitle className="text-lg">Statistik</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="flex justify-between">
@@ -741,8 +752,8 @@ export default function DashboardPage() {
                   <span className="text-sm font-medium">{(currentInstansi?.total_pegawai || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Total Peraturan:</span>
-                  <span className="text-sm font-medium">{currentInstansi?.total_peraturan || 0}</span>
+                  <span className="text-sm">Total Dokumen:</span>
+                  <span className="text-sm font-medium">{(currentInstansi?.total_dokumen || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Update Terakhir:</span>
@@ -752,21 +763,21 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          {/* Key Metrics */}
+          {/* Middle Section - Key Performance Indicators */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Dokumen</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Analisis Dokumen</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{currentInstansi?.total_dokumen || 0}</div>
+                <div className="text-2xl font-bold">{(currentInstansi?.total_dokumen || 0).toLocaleString()}</div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Skor Kepatuhan</CardTitle>
+                <CardTitle className="text-sm font-medium">Rata-rata Skor Kepatuhan</CardTitle>
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -776,7 +787,7 @@ export default function DashboardPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Sentiment Positif</CardTitle>
+                <CardTitle className="text-sm font-medium">Sentimen Positif</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -786,229 +797,214 @@ export default function DashboardPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total User</CardTitle>
+                <CardTitle className="text-sm font-medium">Pengguna Aktif</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{currentInstansi?.total_user || 0}</div>
+                <div className="text-2xl font-bold">{(currentInstansi?.total_user || 0).toLocaleString()}</div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Compliance Analysis */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Bottom Section - Compliance Indicators */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Indikator Compliance Berbasis Dokumen */}
             <Card>
               <CardHeader>
-                <CardTitle>Analisis Compliance</CardTitle>
+                <CardTitle className="text-lg">Indikator Compliance Berbasis Dokumen</CardTitle>
+                <p className="text-sm text-muted-foreground">Analisis kepatuhan berdasarkan dokumen yang diunggah</p>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="bg-green-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Sangat Sesuai</div>
-                    <div className="text-lg font-bold">{currentInstansi?.prosedural_class1 || 0}</div>
+              <CardContent className="space-y-4">
+                {/* Prosedural */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Prosedural</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sangat Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.prosedural_class1 || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sesuaikan Sebagian</div>
+                      <div className="text-lg font-bold">{currentInstansi?.prosedural_class2 || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Tidak Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.prosedural_class3 || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.prosedural_none || 0}</div>
+                    </div>
                   </div>
-                  <div className="bg-yellow-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Sesuaikan Sebagian</div>
-                    <div className="text-lg font-bold">{currentInstansi?.prosedural_class2 || 0}</div>
+                </div>
+
+                {/* Efisiensi Anggaran */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Efisiensi Anggaran</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sangat Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_class1 || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sesuaikan Sebagian</div>
+                      <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_class2 || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Tidak Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_class3 || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_none || 0}</div>
+                    </div>
                   </div>
-                  <div className="bg-red-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Tidak Sesuai</div>
-                    <div className="text-lg font-bold">{currentInstansi?.prosedural_class3 || 0}</div>
+                </div>
+
+                {/* Transparansi */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Transparansi</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sangat Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.transparansi_class1 || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sesuaikan Sebagian</div>
+                      <div className="text-lg font-bold">{currentInstansi?.transparansi_class2 || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Tidak Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.transparansi_class3 || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.transparansi_none || 0}</div>
+                    </div>
                   </div>
-                  <div className="bg-gray-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">None</div>
-                    <div className="text-lg font-bold">{currentInstansi?.prosedural_none || 0}</div>
+                </div>
+
+                {/* Regulasi */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Regulasi</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sangat Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.regulasi_class1 || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sesuaikan Sebagian</div>
+                      <div className="text-lg font-bold">{currentInstansi?.regulasi_class2 || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Tidak Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.regulasi_class3 || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.regulasi_none || 0}</div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Indikator Compliance Berbasis Sentimen Review */}
             <Card>
               <CardHeader>
-                <CardTitle>Efisiensi Anggaran</CardTitle>
+                <CardTitle className="text-lg">Indikator Compliance Berbasis Sentimen Review</CardTitle>
+                <p className="text-sm text-muted-foreground">Analisis kepatuhan berdasarkan sentimen dari review dan feedback</p>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="bg-green-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Sangat Sesuai</div>
-                    <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_class1 || 0}</div>
-                  </div>
-                  <div className="bg-yellow-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Sesuaikan Sebagian</div>
-                    <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_class2 || 0}</div>
-                  </div>
-                  <div className="bg-red-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Tidak Sesuai</div>
-                    <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_class3 || 0}</div>
-                  </div>
-                  <div className="bg-gray-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">None</div>
-                    <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_none || 0}</div>
+              <CardContent className="space-y-4">
+                {/* Prosedural */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Prosedural</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Positif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.prosedural_sentiment_positive || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Netral</div>
+                      <div className="text-lg font-bold">{currentInstansi?.prosedural_sentiment_neutral || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Negatif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.prosedural_sentiment_negative || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.prosedural_sentiment_none || 0}</div>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Transparansi & Regulasi */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Transparansi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="bg-green-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Sangat Sesuai</div>
-                    <div className="text-lg font-bold">{currentInstansi?.transparansi_class1 || 0}</div>
-                  </div>
-                  <div className="bg-yellow-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Sesuaikan Sebagian</div>
-                    <div className="text-lg font-bold">{currentInstansi?.transparansi_class2 || 0}</div>
-                  </div>
-                  <div className="bg-red-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Tidak Sesuai</div>
-                    <div className="text-lg font-bold">{currentInstansi?.transparansi_class3 || 0}</div>
-                  </div>
-                  <div className="bg-gray-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">None</div>
-                    <div className="text-lg font-bold">{currentInstansi?.transparansi_none || 0}</div>
+                {/* Efisiensi Anggaran */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Efisiensi Anggaran</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Positif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_sentiment_positive || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Netral</div>
+                      <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_sentiment_neutral || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Negatif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_sentiment_negative || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_sentiment_none || 0}</div>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Regulasi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="bg-green-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Sangat Sesuai</div>
-                    <div className="text-lg font-bold">{currentInstansi?.regulasi_class1 || 0}</div>
-                  </div>
-                  <div className="bg-yellow-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Sesuaikan Sebagian</div>
-                    <div className="text-lg font-bold">{currentInstansi?.regulasi_class2 || 0}</div>
-                  </div>
-                  <div className="bg-red-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Tidak Sesuai</div>
-                    <div className="text-lg font-bold">{currentInstansi?.regulasi_class3 || 0}</div>
-                  </div>
-                  <div className="bg-gray-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">None</div>
-                    <div className="text-lg font-bold">{currentInstansi?.regulasi_none || 0}</div>
+                {/* Transparansi */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Transparansi</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Positif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.transparansi_sentiment_positive || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Netral</div>
+                      <div className="text-lg font-bold">{currentInstansi?.transparansi_sentiment_neutral || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Negatif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.transparansi_sentiment_negative || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.transparansi_sentiment_none || 0}</div>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Sentiment Analysis */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sentiment Analysis - Prosedural</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="bg-green-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Positif</div>
-                    <div className="text-lg font-bold">{currentInstansi?.prosedural_sentiment_positive || 0}</div>
-                  </div>
-                  <div className="bg-yellow-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Netral</div>
-                    <div className="text-lg font-bold">{currentInstansi?.prosedural_sentiment_neutral || 0}</div>
-                  </div>
-                  <div className="bg-red-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Negatif</div>
-                    <div className="text-lg font-bold">{currentInstansi?.prosedural_sentiment_negative || 0}</div>
-                  </div>
-                  <div className="bg-gray-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">None</div>
-                    <div className="text-lg font-bold">{currentInstansi?.prosedural_sentiment_none || 0}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Sentiment Analysis - Efisiensi Anggaran</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="bg-green-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Positif</div>
-                    <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_sentiment_positive || 0}</div>
-                  </div>
-                  <div className="bg-yellow-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Netral</div>
-                    <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_sentiment_neutral || 0}</div>
-                  </div>
-                  <div className="bg-red-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Negatif</div>
-                    <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_sentiment_negative || 0}</div>
-                  </div>
-                  <div className="bg-gray-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">None</div>
-                    <div className="text-lg font-bold">{currentInstansi?.efisiensi_anggaran_sentiment_none || 0}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Additional Sentiment Analysis */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sentiment Analysis - Transparansi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="bg-green-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Positif</div>
-                    <div className="text-lg font-bold">{currentInstansi?.transparansi_sentiment_positive || 0}</div>
-                  </div>
-                  <div className="bg-yellow-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Netral</div>
-                    <div className="text-lg font-bold">{currentInstansi?.transparansi_sentiment_neutral || 0}</div>
-                  </div>
-                  <div className="bg-red-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Negatif</div>
-                    <div className="text-lg font-bold">{currentInstansi?.transparansi_sentiment_negative || 0}</div>
-                  </div>
-                  <div className="bg-gray-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">None</div>
-                    <div className="text-lg font-bold">{currentInstansi?.transparansi_sentiment_none || 0}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Sentiment Analysis - Regulasi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="bg-green-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Positif</div>
-                    <div className="text-lg font-bold">{currentInstansi?.regulasi_sentiment_positive || 0}</div>
-                  </div>
-                  <div className="bg-yellow-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Netral</div>
-                    <div className="text-lg font-bold">{currentInstansi?.regulasi_sentiment_neutral || 0}</div>
-                  </div>
-                  <div className="bg-red-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">Negatif</div>
-                    <div className="text-lg font-bold">{currentInstansi?.regulasi_sentiment_negative || 0}</div>
-                  </div>
-                  <div className="bg-gray-500 text-white text-center p-2 rounded">
-                    <div className="text-xs">None</div>
-                    <div className="text-lg font-bold">{currentInstansi?.regulasi_sentiment_none || 0}</div>
+                {/* Regulasi */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Regulasi</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Positif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.regulasi_sentiment_positive || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Netral</div>
+                      <div className="text-lg font-bold">{currentInstansi?.regulasi_sentiment_neutral || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Negatif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.regulasi_sentiment_negative || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.regulasi_sentiment_none || 0}</div>
+                    </div>
                   </div>
                 </div>
               </CardContent>

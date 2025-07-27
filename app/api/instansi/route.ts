@@ -16,8 +16,6 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    console.log('External API response:', response)
-
     if (!response.ok) {
       throw new Error(`External API error! status: ${response.status}`)
     }
@@ -30,10 +28,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json()
-
-    console.log('External API response data type:', typeof data)
-    console.log('External API response data length:', Array.isArray(data) ? data.length : 'not an array')
-    console.log('External API response data sample:', Array.isArray(data) && data.length > 0 ? data[0] : 'no data')
 
     // Validate data structure
     if (!Array.isArray(data)) {
@@ -141,7 +135,6 @@ export async function GET(request: NextRequest) {
 
     // Try to use fallback data from local database
     try {
-      console.log('Attempting to use fallback data from local database...')
 
       // Get current user again in fallback
       const currentUser = getCurrentUser(request)
@@ -209,8 +202,6 @@ export async function GET(request: NextRequest) {
           filteredData = transformedData.filter((inst: { id_instansi: number }) => inst.id_instansi === currentUser.institutionId)
         }
       }
-
-      console.log('Successfully loaded fallback data:', filteredData.length, 'institutions')
 
       return NextResponse.json(filteredData, {
         status: 200,

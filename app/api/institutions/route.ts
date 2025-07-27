@@ -95,7 +95,6 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    console.log('Received data for new institution:', body)
 
     const {
       name,
@@ -144,8 +143,6 @@ export async function POST(request: NextRequest) {
       is_active: is_active !== undefined ? is_active : true
     }
 
-    console.log('Creating institution with data:', institutionData)
-
     const newInstitution = await prisma.institution.create({
       data: institutionData,
       select: {
@@ -162,8 +159,6 @@ export async function POST(request: NextRequest) {
         is_active: true
       }
     })
-
-    console.log('Successfully created institution with ID:', newInstitution.id)
     return NextResponse.json(newInstitution, { status: 201 })
   } catch (error) {
     console.error('Create institution error:', error)

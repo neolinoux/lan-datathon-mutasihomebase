@@ -246,7 +246,6 @@ export default function AnalisisDokumenPage() {
             console.error('Error saving to database:', saveErrorData);
           } else {
             const saveResult = await saveResponse.json();
-            console.log('Analysis saved successfully:', saveResult);
           }
 
         } catch (saveError) {
