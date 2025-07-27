@@ -56,18 +56,24 @@ export default function SidebarAnalisisKanan({
 
         const params = new URLSearchParams();
 
-        // Role-based filtering
-        if (!(userRole === 'admin' && institutionId === 0)) {
-          // Regular users can see all analysis for their institution
-          if (institutionId) params.append('institution_id', institutionId.toString());
+        // Role-based filtering (only for authenticated users)
+        if (userRole && institutionId) {
+          if (!(userRole === 'admin' && institutionId === 0)) {
+            // Regular users can see all analysis for their institution
+            params.append('institution_id', institutionId.toString());
+          }
         }
+        // Non-authenticated users can see all analysis results (no filtering)
 
         params.append('limit', '20');
 
+        const headers: Record<string, string> = {}
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+
         const response = await fetch(`/api/analysis/history?${params}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers
         });
 
         if (!response.ok) {

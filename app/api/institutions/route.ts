@@ -4,19 +4,55 @@ import { getCurrentUser } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
+    // Check authentication (optional for public access)
     const currentUser = getCurrentUser(request)
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
-    // Get institutions based on user role
+    // Get institutions based on user role (if authenticated)
     let institutions
-    if (currentUser.role === 'admin' && currentUser.institutionId === 0) {
-      // Admin with institution_id 0 can see all institutions
+    if (currentUser) {
+      if (currentUser.role === 'admin' && currentUser.institutionId === 0) {
+        // Admin with institution_id 0 can see all institutions
+        institutions = await prisma.institution.findMany({
+          select: {
+            id: true,
+            name: true,
+            full_name: true,
+            category: true,
+            address: true,
+            phone: true,
+            email: true,
+            website: true,
+            established_year: true,
+            total_employees: true,
+            is_active: true
+          },
+          orderBy: {
+            name: 'asc'
+          }
+        })
+      } else {
+        // Regular users can only see their institution
+        institutions = await prisma.institution.findMany({
+          where: {
+            id: currentUser.institutionId
+          },
+          select: {
+            id: true,
+            name: true,
+            full_name: true,
+            category: true,
+            address: true,
+            phone: true,
+            email: true,
+            website: true,
+            established_year: true,
+            total_employees: true,
+            is_active: true
+          }
+        })
+      }
+    } else {
+      // Non-authenticated users can see all institutions
       institutions = await prisma.institution.findMany({
         select: {
           id: true,
@@ -33,26 +69,6 @@ export async function GET(request: NextRequest) {
         },
         orderBy: {
           name: 'asc'
-        }
-      })
-    } else {
-      // Regular users can only see their institution
-      institutions = await prisma.institution.findMany({
-        where: {
-          id: currentUser.institutionId
-        },
-        select: {
-          id: true,
-          name: true,
-          full_name: true,
-          category: true,
-          address: true,
-          phone: true,
-          email: true,
-          website: true,
-          established_year: true,
-          total_employees: true,
-          is_active: true
         }
       })
     }

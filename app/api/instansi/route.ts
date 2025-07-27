@@ -4,17 +4,10 @@ import { getCurrentUser } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
+    // Check authentication (optional for public access)
     const currentUser = getCurrentUser(request)
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     // For dashboard data, use external API
-
     const response = await fetch('https://baec13f3a9c5.ngrok-free.app/rekapitulasi_instansi', {
       method: 'GET',
       headers: {
@@ -41,12 +34,16 @@ export async function GET(request: NextRequest) {
       throw new Error('External API returned empty or invalid data array')
     }
 
-    // Filter data based on user role
+    // Filter data based on user role (if authenticated)
     let filteredData = data
-    if (!(currentUser.role === 'admin' && currentUser.institutionId === 0)) {
-      // Regular users can only see their institution
-      filteredData = data.filter((inst: any) => inst.id_instansi === currentUser.institutionId)
+    if (currentUser) {
+      if (!(currentUser.role === 'admin' && currentUser.institutionId === 0)) {
+        // Regular users can only see their institution
+        filteredData = data.filter((inst: any) => inst.id_instansi === currentUser.institutionId)
+      }
+      // Admin with institution_id 0 can see all data (no filtering needed)
     }
+    // Non-authenticated users can see all data (no filtering)
 
     return NextResponse.json(filteredData, {
       status: 200,

@@ -6,14 +6,8 @@ const prisma = new PrismaClient()
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
+    // Check authentication (optional for public access)
     const currentUser = getCurrentUser(request)
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('user_id')
@@ -23,22 +17,25 @@ export async function GET(request: NextRequest) {
 
     let whereClause: any = {}
 
-    // Role-based access control
-    if (currentUser.role === 'admin' && currentUser.institutionId === 0) {
-      // Admin with institution_id 0 can see all analysis results
-      if (userId) {
-        whereClause.user_id = parseInt(userId)
-      }
-      if (institutionId) {
-        whereClause.institution_id = parseInt(institutionId)
-      }
-    } else {
-      // Regular users can see all analysis results for their institution
-      whereClause.institution_id = currentUser.institutionId
-      if (userId) { // Optional: if a specific user_id is requested, filter by it within the institution
-        whereClause.user_id = parseInt(userId)
+    // Role-based access control (if authenticated)
+    if (currentUser) {
+      if (currentUser.role === 'admin' && currentUser.institutionId === 0) {
+        // Admin with institution_id 0 can see all analysis results
+        if (userId) {
+          whereClause.user_id = parseInt(userId)
+        }
+        if (institutionId) {
+          whereClause.institution_id = parseInt(institutionId)
+        }
+      } else {
+        // Regular users can see all analysis results for their institution
+        whereClause.institution_id = currentUser.institutionId
+        if (userId) { // Optional: if a specific user_id is requested, filter by it within the institution
+          whereClause.user_id = parseInt(userId)
+        }
       }
     }
+    // Non-authenticated users can see all analysis results (no filtering)
 
     // Fetch analysis results with related data
     const analysisResults = await prisma.analysisResult.findMany({

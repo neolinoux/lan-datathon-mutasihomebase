@@ -9,33 +9,30 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check authentication
+    // Check authentication (optional for public access)
     const currentUser = getCurrentUser(request)
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const analysisId = parseInt(params.id)
-
     if (isNaN(analysisId)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid analysis ID' },
+        { error: 'ID analisis tidak valid' },
         { status: 400 }
       )
     }
 
-    // Build where clause based on user role
+    // Build where clause based on user role (if authenticated)
     let whereClause: any = { id: analysisId }
 
-    if (!(currentUser.role === 'admin' && currentUser.institutionId === 0)) {
-      // Regular users can access analysis for their institution
-      whereClause.institution_id = currentUser.institutionId
+    if (currentUser) {
+      if (!(currentUser.role === 'admin' && currentUser.institutionId === 0)) {
+        // Regular users can access analysis for their institution
+        whereClause.institution_id = currentUser.institutionId
+      }
     }
+    // Non-authenticated users can access any analysis detail (no filtering)
 
-    const analysis = await prisma.analysisResult.findUnique({
+    // Fetch analysis result with related data
+    const analysisResult = await prisma.analysisResult.findFirst({
       where: whereClause,
       include: {
         user: {
@@ -58,14 +55,12 @@ export async function GET(
             file_type: true,
             original_name: true,
             stored_path: true,
-            file_size: true,
-            mime_type: true
+            file_size: true
           }
         },
         compliance_indicators: {
           select: {
             id: true,
-            id_indikator: true,
             nama: true,
             encode_class: true,
             detail_analisis: true,
@@ -76,9 +71,9 @@ export async function GET(
         recommendations: {
           select: {
             id: true,
-            id_indikator: true,
             judul_rekomendasi: true,
             deskripsi_rekomendasi: true,
+            id_indikator: true,
             langkah_rekomendasi: true
           }
         },
@@ -94,34 +89,34 @@ export async function GET(
       }
     })
 
-    if (!analysis) {
+    if (!analysisResult) {
       return NextResponse.json(
-        { success: false, error: 'Analysis not found' },
+        { error: 'Analisis tidak ditemukan' },
         { status: 404 }
       )
     }
 
-    // Convert to the format expected by the frontend components
-    const formattedAnalysis = {
+    // Format response to match expected structure
+    const formattedResponse = {
       status: 'success',
-      message: 'Analisis dokumen berhasil',
-      timestamp: analysis.created_at.toISOString(),
+      message: 'Analisis ditemukan',
+      timestamp: new Date().toISOString(),
       data: {
-        id_dokumen: analysis.analysis_id,
-        id_instansi: analysis.institution_id.toString(),
-        judul_kegiatan: analysis.judul_kegiatan,
-        deskripsi_kegiatan: analysis.deskripsi_kegiatan,
-        include_dok_keuangan: analysis.include_dok_keuangan,
-        path_dok_kegiatan: analysis.path_dok_kegiatan,
-        path_dok_keuangan: analysis.path_dok_keuangan,
+        id_dokumen: analysisResult.id_dokumen,
+        id_instansi: analysisResult.institution_id.toString(),
+        judul_kegiatan: analysisResult.judul_kegiatan,
+        deskripsi_kegiatan: analysisResult.deskripsi_kegiatan,
+        include_dok_keuangan: analysisResult.include_dok_keuangan,
+        path_dok_kegiatan: analysisResult.path_dok_kegiatan,
+        path_dok_keuangan: analysisResult.path_dok_keuangan,
         data_response: {
-          list_peraturan_terkait: analysis.related_regulations.map(reg => ({
+          list_peraturan_terkait: analysisResult.related_regulations.map(reg => ({
             judul_peraturan: reg.judul_peraturan,
             instansi: reg.instansi,
             tingkat_kepatuhan: reg.tingkat_kepatuhan,
             url_pera: reg.url_pera
           })),
-          indikator_compliance: analysis.compliance_indicators.map(ind => ({
+          indikator_compliance: analysisResult.compliance_indicators.map(ind => ({
             id_indikator: ind.id_indikator,
             nama: ind.nama,
             encode_class: ind.encode_class,
@@ -130,10 +125,10 @@ export async function GET(
             score_indikator: ind.score_indikator
           })),
           summary_indicator_compliance: {
-            tingkat_risiko: analysis.tingkat_risiko,
-            score_compliance: analysis.score_compliance
+            tingkat_risiko: analysisResult.tingkat_risiko,
+            score_compliance: analysisResult.score_compliance
           },
-          rekomendasi_per_indikator: analysis.recommendations.map(rec => ({
+          rekomendasi_per_indikator: analysisResult.recommendations.map(rec => ({
             id_indikator: rec.id_indikator,
             judul_rekomendasi: rec.judul_rekomendasi,
             deskripsi_rekomendasi: rec.deskripsi_rekomendasi,
@@ -143,10 +138,7 @@ export async function GET(
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      data: formattedAnalysis
-    })
+    return NextResponse.json(formattedResponse)
 
   } catch (error) {
     console.error('Error fetching analysis detail:', error)
