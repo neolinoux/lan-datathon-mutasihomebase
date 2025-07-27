@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { Menu, FileText, User, LogOut, Home, Search, Filter, File, Building2, ChevronRight, ChevronLeft, Users, History } from "lucide-react";
+import { Menu, FileText, User, LogOut, Home, Search, Filter, File, Building2, ChevronRight, ChevronLeft, Users, History, DollarSign } from "lucide-react";
 import Link from "next/link";
 import { ModeToggle } from "@/components/toggle-dark-mode";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -179,7 +179,7 @@ export default function ManajemenPenggunaPage() {
                   variant="outline"
                   className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
                 >
-                  <FileText className="h-4 w-4 mr-2" />
+                  <DollarSign className="h-4 w-4 mr-2" />
                   {!sidebarCollapsed && "Daftar Harga"}
                 </Button>
               </Link>
