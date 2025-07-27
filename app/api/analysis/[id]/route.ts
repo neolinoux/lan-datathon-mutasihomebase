@@ -21,7 +21,7 @@ export async function GET(
     }
 
     // Build where clause based on user role (if authenticated)
-    let whereClause: any = { id: analysisId }
+    const whereClause: any = { id: analysisId }
 
     if (currentUser) {
       if (!(currentUser.role === 'admin' && currentUser.institutionId === 0)) {
@@ -102,8 +102,8 @@ export async function GET(
       message: 'Analisis ditemukan',
       timestamp: new Date().toISOString(),
       data: {
-        id_dokumen: analysisResult.id_dokumen,
-        id_instansi: analysisResult.institution_id.toString(),
+        id_dokumen: analysisResult.id,
+        id_instansi: analysisResult.institution_id,
         judul_kegiatan: analysisResult.judul_kegiatan,
         deskripsi_kegiatan: analysisResult.deskripsi_kegiatan,
         include_dok_keuangan: analysisResult.include_dok_keuangan,
@@ -117,7 +117,7 @@ export async function GET(
             url_pera: reg.url_pera
           })),
           indikator_compliance: analysisResult.compliance_indicators.map(ind => ({
-            id_indikator: ind.id_indikator,
+            id_indikator: ind.id,
             nama: ind.nama,
             encode_class: ind.encode_class,
             detail_analisis: ind.detail_analisis,

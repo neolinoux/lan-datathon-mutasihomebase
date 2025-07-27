@@ -1,6 +1,5 @@
 "use client"
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
@@ -9,11 +8,9 @@ import BubbleAIPromptResult from "../components/BubbleAIPromptResult";
 import BubbleAISentiment from "../components/BubbleAISentiment";
 import FileDropzone from "../components/FileDropzone";
 import { ModeToggle } from "@/components/toggle-dark-mode";
-import BubbleAIVideoPembelajaran from "../components/BubbleAIVideoPembelajaran";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
-import ProtectedRoute from "@/components/protected-route";
 import { LogOut } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import Link from "next/link";
@@ -238,10 +235,6 @@ export default function AnalisisDokumenPage() {
             saveFormData.append('files', fileAnggaran);
           }
 
-          const saveResponse = await fetch('/api/analysis/save', {
-            method: 'POST',
-            body: saveFormData,
-          });
         } catch (saveError) {
           console.error('Error saving analysis result:', saveError);
           // Don't throw error here, just log it

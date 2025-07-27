@@ -1,12 +1,10 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ChevronLeft, ChevronRight, Building2, Users, FileText, Home, Shield, TrendingUp, History, LogOut, Cloud, Search, DollarSign, Package } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { ChevronLeft, ChevronRight, Building2, Users, FileText, Home, History, LogOut, Search, Package, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { ModeToggle } from '@/components/toggle-dark-mode'

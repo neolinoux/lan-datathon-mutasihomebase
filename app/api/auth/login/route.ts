@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       email: user.email,
       role: user.role,
-      institutionId: user.institution_id
+      institutionId: user.institution_id || undefined
     })
 
     // Return user data (without password) and token

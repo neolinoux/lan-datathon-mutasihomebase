@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    let whereClause: any = {}
+    const whereClause: any = {}
 
     // Role-based access control (if authenticated)
     if (currentUser) {

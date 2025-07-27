@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle dok_keuangan conditional logic
-    const includeDokKeuangan = formData.get('include_dok_keuangan')
     const dokKeuanganFile = formData.get('dok_keuangan')
 
     // Only send dok_keuangan field if a file is actually provided
@@ -38,12 +37,6 @@ export async function POST(request: NextRequest) {
     if (dokKeuanganFile instanceof File) {
       correctedFormData.append('dok_keuangan', dokKeuanganFile)
     } else {
-    }
-
-    // Log final corrected FormData
-    let finalEntryCount = 0
-    for (const [key, value] of correctedFormData.entries()) {
-      finalEntryCount++
     }
 
     // Forward the corrected FormData to external API
@@ -124,12 +117,9 @@ export async function POST(request: NextRequest) {
       throw new Error(`External API error! status: ${response.status}, response: ${errorText}`)
     }
 
-    // Check content type
     const contentType = response.headers.get('content-type')
 
     if (!contentType || !contentType.includes('application/json')) {
-      // If not JSON, get the text content to see what we're actually getting
-      const textResponse = await response.text()
       throw new Error(`External API returned non-JSON response. Content-Type: ${contentType}`)
     }
 

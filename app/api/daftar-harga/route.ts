@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 interface PriceItem {
   "Barang/Jasa": string
@@ -6,7 +6,7 @@ interface PriceItem {
   "Harga": number
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const response = await fetch('https://baec13f3a9c5.ngrok-free.app/daftar_harga', {
       method: 'GET',
