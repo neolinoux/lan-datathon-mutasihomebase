@@ -1122,6 +1122,29 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Evaluasi RTL */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Evaluasi RTL</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Positif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.evalusi_rtl_sentiment_positive || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Netral</div>
+                      <div className="text-lg font-bold">{currentInstansi?.evalusi_rtl_sentiment_neutral || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Negatif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.evalusi_rtl_sentiment_negative || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.evalusi_rtl_sentiment_none || 0}</div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
