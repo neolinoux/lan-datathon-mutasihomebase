@@ -654,7 +654,7 @@ export default function DashboardPage() {
         <div className="bg-card border-b">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold">Riwayat Analisis Dokumen</h1>
+              <h1 className="text-2xl font-bold">Dashboard</h1>
             </div>
 
             <div className="flex items-center space-x-4">
