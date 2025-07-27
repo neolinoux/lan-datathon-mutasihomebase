@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
@@ -6,40 +7,46 @@ export async function POST(request: NextRequest) {
     // Handle FormData instead of JSON for file uploads
     const formData = await request.formData()
 
-    // Create new FormData with correct data types for external API
-    const correctedFormData = new FormData()
+    // Prepare to collect blob URLs
+    let dokKegiatanBlobUrl = '';
+    let dokKeuanganBlobUrl = '';
 
-    // Process and log each field
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        correctedFormData.append(key, value)
-      } else {
-
-        // Convert data types to match external API expectations
-        if (key === 'id_instansi') {
-          const stringValue = String(value)
-          correctedFormData.append(key, stringValue)
-        } else if (key === 'include_dok_keuangan') {
-          const boolString = value === 'true' ? 'true' : 'false'
-          correctedFormData.append(key, boolString)
-        } else {
-          const stringValue = String(value)
-          correctedFormData.append(key, stringValue)
-        }
-      }
+    // Upload dok_kegiatan to Vercel Blob
+    const dokKegiatanFile = formData.get('dok_kegiatan');
+    if (dokKegiatanFile instanceof File) {
+      const dokKegiatanUpload = await put(
+        `analysis/${Date.now()}_${dokKegiatanFile.name}`,
+        dokKegiatanFile,
+        { access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN }
+      );
+      dokKegiatanBlobUrl = dokKegiatanUpload.url;
     }
 
-    // Handle dok_keuangan conditional logic
-    const dokKeuanganFile = formData.get('dok_keuangan')
-
-    // Only send dok_keuangan field if a file is actually provided
-    // External API expects UploadFile, not empty string
+    // Upload dok_keuangan to Vercel Blob (if exists)
+    const dokKeuanganFile = formData.get('dok_keuangan');
     if (dokKeuanganFile instanceof File) {
-      correctedFormData.append('dok_keuangan', dokKeuanganFile)
-    } else {
+      const dokKeuanganUpload = await put(
+        `analysis/${Date.now()}_${dokKeuanganFile.name}`,
+        dokKeuanganFile,
+        { access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN }
+      );
+      dokKeuanganBlobUrl = dokKeuanganUpload.url;
     }
 
-    // Forward the corrected FormData to external API
+    // Create new FormData for external API (if still needed)
+    const correctedFormData = new FormData();
+    for (const [key, value] of formData.entries()) {
+      if (key === 'dok_kegiatan' && dokKegiatanBlobUrl) {
+        correctedFormData.append('dok_kegiatan_url', dokKegiatanBlobUrl);
+      } else if (key === 'dok_keuangan' && dokKeuanganBlobUrl) {
+        correctedFormData.append('dok_keuangan_url', dokKeuanganBlobUrl);
+      } else if (!(value instanceof File)) {
+        correctedFormData.append(key, String(value));
+      }
+      // Do not append the original File objects anymore
+    }
+
+    // Forward the correctedFormData to external API
     const externalApiUrl = 'https://c89b823ad59d.ngrok-free.app/analyse_compliance_doc/'
 
     const response = await fetch(externalApiUrl, {

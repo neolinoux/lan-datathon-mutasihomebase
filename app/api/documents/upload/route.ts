@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
+import { put } from "@vercel/blob"
 
 // Allowed file types
 const ALLOWED_TYPES = [
