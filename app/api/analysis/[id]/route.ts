@@ -6,13 +6,14 @@ const prisma = new PrismaClient()
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication (optional for public access)
     const currentUser = getCurrentUser(request)
 
-    const analysisId = parseInt(params.id)
+    const { id } = await params
+    const analysisId = parseInt(id)
     if (isNaN(analysisId)) {
       return NextResponse.json(
         { error: 'ID analisis tidak valid' },

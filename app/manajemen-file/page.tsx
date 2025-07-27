@@ -101,7 +101,7 @@ export default function ManajemenFilePage() {
     try {
       setLoading(true)
 
-      let params = new URLSearchParams()
+      const params = new URLSearchParams()
 
       // Role-based filtering
       if (!(user?.role === 'admin' && user?.institution?.id === 0)) {
