@@ -80,7 +80,6 @@ export default function UploadDocumentModal({ onUploadSuccess, institutionId }: 
 
       if (response.ok) {
         const result = await response.json()
-        console.log('Upload successful:', result)
 
         // Reset form
         setTitle("")

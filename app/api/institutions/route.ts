@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
     const currentUser = getCurrentUser(request)
     if (!currentUser) {
       return NextResponse.json(
@@ -14,13 +15,21 @@ export async function GET(request: NextRequest) {
 
     // Get institutions based on user role
     let institutions
-    if (currentUser.role === 'admin' && !currentUser.institutionId) {
-      // Super admin can see all institutions
+    if (currentUser.role === 'admin' && currentUser.institutionId === 0) {
+      // Admin with institution_id 0 can see all institutions
       institutions = await prisma.institution.findMany({
         select: {
           id: true,
           name: true,
-          category: true
+          full_name: true,
+          category: true,
+          address: true,
+          phone: true,
+          email: true,
+          website: true,
+          established_year: true,
+          total_employees: true,
+          is_active: true
         },
         orderBy: {
           name: 'asc'
@@ -35,7 +44,15 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           name: true,
-          category: true
+          full_name: true,
+          category: true,
+          address: true,
+          phone: true,
+          email: true,
+          website: true,
+          established_year: true,
+          total_employees: true,
+          is_active: true
         }
       })
     }
@@ -50,48 +67,103 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/institutions - Create instansi baru
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication and admin role
     const currentUser = getCurrentUser(request)
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || !(currentUser.role === 'admin' && currentUser.institutionId === 0)) {
       return NextResponse.json(
-        { error: 'Unauthorized - Admin only' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    const { name, category, address, phone, email, website, founded_year, total_employees } = await request.json()
+    const body = await request.json()
+    console.log('Received data for new institution:', body)
 
-    if (!name) {
+    const {
+      name,
+      full_name,
+      category,
+      address,
+      phone,
+      email,
+      website,
+      established_year,
+      total_employees,
+      is_active
+    } = body
+
+    // Validate required fields
+    if (!name || !full_name || !category) {
       return NextResponse.json(
-        { error: 'Nama instansi diperlukan' },
+        { error: 'Nama, nama lengkap, dan kategori wajib diisi' },
         { status: 400 }
       )
     }
 
+    // Check if institution name already exists
+    const existingInstitution = await prisma.institution.findFirst({
+      where: { name }
+    })
+
+    if (existingInstitution) {
+      return NextResponse.json(
+        { error: 'Nama instansi sudah ada' },
+        { status: 400 }
+      )
+    }
+
+    // Create new institution - explicitly exclude id to let database handle auto increment
+    const institutionData = {
+      name,
+      full_name,
+      category,
+      address: address || '',
+      phone: phone || '',
+      email: email || '',
+      website: website || '',
+      established_year: established_year || new Date().getFullYear(),
+      total_employees: total_employees || 0,
+      is_active: is_active !== undefined ? is_active : true
+    }
+
+    console.log('Creating institution with data:', institutionData)
+
     const newInstitution = await prisma.institution.create({
-      data: {
-        name,
-        category,
-        address,
-        phone,
-        email,
-        website,
-        founded_year: founded_year ? parseInt(founded_year) : null,
-        total_employees: total_employees ? parseInt(total_employees) : null,
-        total_documents: 0
+      data: institutionData,
+      select: {
+        id: true,
+        name: true,
+        full_name: true,
+        category: true,
+        address: true,
+        phone: true,
+        email: true,
+        website: true,
+        established_year: true,
+        total_employees: true,
+        is_active: true
       }
     })
 
-    return NextResponse.json({
-      message: 'Instansi berhasil dibuat',
-      institution: newInstitution
-    }, { status: 201 })
+    console.log('Successfully created institution with ID:', newInstitution.id)
+    return NextResponse.json(newInstitution, { status: 201 })
   } catch (error) {
     console.error('Create institution error:', error)
+
+    // Handle specific Prisma errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      if (error.code === 'P2002') {
+        return NextResponse.json(
+          { error: 'Nama instansi sudah ada dalam database' },
+          { status: 400 }
+        )
+      }
+    }
+
     return NextResponse.json(
-      { error: 'Terjadi kesalahan server' },
+      { error: 'Terjadi kesalahan server saat membuat instansi' },
       { status: 500 }
     )
   }

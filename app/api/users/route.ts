@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, hashPassword } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,51 +22,27 @@ export async function GET(request: NextRequest) {
 
     // Get users based on admin role
     let users
-    if (!currentUser.institutionId) {
-      // Super admin can see all users
-      users = await prisma.user.findMany({
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          is_active: true,
-          institution: {
-            select: {
-              id: true,
-              name: true
-            }
+    // Admin can see all users regardless of their own institution
+    users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        is_active: true,
+        created_at: true,
+        institution: {
+          select: {
+            id: true,
+            name: true
           }
-        },
-        orderBy: [
-          { institution_id: 'asc' },
-          { name: 'asc' }
-        ]
-      })
-    } else {
-      // Institution admin can only see users from their institution
-      users = await prisma.user.findMany({
-        where: {
-          institution_id: currentUser.institutionId
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          is_active: true,
-          institution: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        },
-        orderBy: {
-          name: 'asc'
         }
-      })
-    }
+      },
+      orderBy: [
+        { institution_id: 'asc' },
+        { name: 'asc' }
+      ]
+    })
 
     return NextResponse.json(users)
   } catch (error) {
@@ -111,19 +87,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password
-    // const hashedPassword = await hashPassword(password) // This line was removed as per the new_code
+    const hashedPassword = await hashPassword(password)
 
     // Create user
     const newUser = await prisma.user.create({
       data: {
         name,
         email,
-        // password_hash: hashedPassword, // This line was removed as per the new_code
+        password_hash: hashedPassword,
         role,
         institution_id: institution_id || null
-      },
-      include: {
-        institution: true
       },
       select: {
         id: true,

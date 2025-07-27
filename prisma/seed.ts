@@ -9,6 +9,24 @@ async function main() {
   // Seed Institutions
   console.log('📊 Creating institutions...')
   const institutions = await Promise.all([
+    // Special institution for admin
+    prisma.institution.upsert({
+      where: { id: 0 },
+      update: {},
+      create: {
+        id: 0,
+        name: 'System Admin',
+        full_name: 'System Administrator',
+        category: 'System',
+        address: 'System',
+        phone: '000000000',
+        email: 'admin@system.local',
+        website: 'system.local',
+        established_year: 2024,
+        total_employees: 1,
+        is_active: true
+      }
+    }),
     prisma.institution.upsert({
       where: { id: 1 },
       update: {},
@@ -351,7 +369,7 @@ async function main() {
         email: 'admin@example.com',
         password_hash: hashedPassword,
         role: 'admin',
-        institution_id: 1, // Komisi I
+        institution_id: 0,
         is_active: true
       }
     }),

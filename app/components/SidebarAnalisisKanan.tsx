@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Home, FileText, Calendar, User } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 interface AnalysisHistoryItem {
   id: number;
@@ -25,6 +26,7 @@ interface AnalysisHistoryItem {
 interface SidebarAnalisisKananProps {
   userId?: number;
   institutionId?: number;
+  userRole?: string; // Add user role prop
   onHistoryClick?: (analysisId: number) => void;
   selectedAnalysisId?: number | null;
   onAnalisisBaru?: () => void;
@@ -34,11 +36,13 @@ interface SidebarAnalisisKananProps {
 export default function SidebarAnalisisKanan({
   userId,
   institutionId,
+  userRole,
   onHistoryClick,
   selectedAnalysisId,
   onAnalisisBaru,
   sidebarOpen = true
 }: SidebarAnalisisKananProps) {
+  const { token } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,11 +55,20 @@ export default function SidebarAnalisisKanan({
         setError(null);
 
         const params = new URLSearchParams();
-        if (userId) params.append('user_id', userId.toString());
-        if (institutionId) params.append('institution_id', institutionId.toString());
+
+        // Role-based filtering
+        if (!(userRole === 'admin' && institutionId === 0)) {
+          // Regular users can see all analysis for their institution
+          if (institutionId) params.append('institution_id', institutionId.toString());
+        }
+
         params.append('limit', '20');
 
-        const response = await fetch(`/api/analysis/history?${params}`);
+        const response = await fetch(`/api/analysis/history?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
         if (!response.ok) {
           throw new Error('Failed to fetch analysis history');
@@ -77,7 +90,7 @@ export default function SidebarAnalisisKanan({
     };
 
     fetchHistory();
-  }, [userId, institutionId]);
+  }, [userId, institutionId, userRole, token]);
 
   const filteredHistory = history.filter(h =>
     h.judul_kegiatan.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -182,15 +195,6 @@ export default function SidebarAnalisisKanan({
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <User size={12} />
                       <span>{item.user.name}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs">
-                        Skor: <span className="font-medium">{Math.round(item.score_compliance * 100)}%</span>
-                      </span>
-                      <span className={`text-xs font-medium ${getRiskLevelColor(item.tingkat_risiko)}`}>
-                        Risiko: {getRiskLevelText(item.tingkat_risiko)}
-                      </span>
                     </div>
 
                     <div className="text-xs text-muted-foreground">

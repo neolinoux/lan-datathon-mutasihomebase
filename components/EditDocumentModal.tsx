@@ -72,7 +72,6 @@ export default function EditDocumentModal({ document, onEditSuccess }: EditDocum
 
       if (response.ok) {
         const result = await response.json()
-        console.log('Edit successful:', result)
 
         setOpen(false)
         onEditSuccess()

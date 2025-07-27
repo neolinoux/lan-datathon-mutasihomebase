@@ -102,7 +102,6 @@ export default function EditUserModal({ user, onUserUpdated }: EditUserModalProp
 
       if (response.ok) {
         const result = await response.json()
-        console.log('User updated successfully:', result)
 
         setOpen(false)
         onUserUpdated()
@@ -178,8 +177,7 @@ export default function EditUserModal({ user, onUserUpdated }: EditUserModalProp
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="operator">Operator</SelectItem>
-                <SelectItem value="viewer">Viewer</SelectItem>
+                <SelectItem value="user">User</SelectItem>
               </SelectContent>
             </Select>
           </div>

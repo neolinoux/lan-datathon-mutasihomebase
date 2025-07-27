@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/database'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('Fetching instansi data from external API...')
+    // Check authentication
+    const currentUser = getCurrentUser(request)
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
 
-    const response = await fetch('https://82046b2c4328.ngrok-free.app/rekapitulasi_instansi', {
+    // For dashboard data, use external API
+
+    const response = await fetch('https://baec13f3a9c5.ngrok-free.app/rekapitulasi_instansi', {
       method: 'GET',
       headers: {
         'ngrok-skip-browser-warning': 'true',
@@ -12,34 +23,32 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    console.log('External API Response status:', response.status)
-    console.log('External API Response headers:', response.headers)
-
     if (!response.ok) {
       throw new Error(`External API error! status: ${response.status}`)
     }
 
     // Check content type
     const contentType = response.headers.get('content-type')
-    console.log('External API Content-Type:', contentType)
-
     if (!contentType || !contentType.includes('application/json')) {
-      // If not JSON, get the text content to see what we're actually getting
       const textResponse = await response.text()
-      console.log('Non-JSON response from external API:', textResponse.substring(0, 500))
       throw new Error(`External API returned non-JSON response. Content-Type: ${contentType}`)
     }
 
     const data = await response.json()
-    console.log('Successfully parsed JSON data from external API')
 
     // Validate data structure
     if (!Array.isArray(data) || data.length === 0) {
       throw new Error('External API returned empty or invalid data array')
     }
 
-    // Return the data with proper headers
-    return NextResponse.json(data, {
+    // Filter data based on user role
+    let filteredData = data
+    if (!(currentUser.role === 'admin' && currentUser.institutionId === 0)) {
+      // Regular users can only see their institution
+      filteredData = data.filter((inst: any) => inst.id_instansi === currentUser.institutionId)
+    }
+
+    return NextResponse.json(filteredData, {
       status: 200,
       headers: {
         'Content-Type': 'application/json',

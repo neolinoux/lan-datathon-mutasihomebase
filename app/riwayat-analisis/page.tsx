@@ -37,7 +37,7 @@ interface AnalysisHistoryItem {
 }
 
 export default function RiwayatAnalisisPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,12 +58,21 @@ export default function RiwayatAnalisisPage() {
       setError(null);
 
       const params = new URLSearchParams();
-      if (user?.id) params.append('user_id', user.id.toString());
-      if (user?.institution?.id) params.append('institution_id', user.institution.id.toString());
+
+      // Role-based filtering
+      if (!(user?.role === 'admin' && user?.institution?.id === 0)) {
+        // Regular users can see all analysis for their institution
+        if (user?.institution?.id) params.append('institution_id', user.institution.id.toString());
+      }
+
       params.append('limit', itemsPerPage.toString());
       params.append('offset', ((currentPage - 1) * itemsPerPage).toString());
 
-      const response = await fetch(`/api/analysis/history?${params}`);
+      const response = await fetch(`/api/analysis/history?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
       if (!response.ok) {
         throw new Error('Failed to fetch analysis history');
@@ -197,7 +206,7 @@ export default function RiwayatAnalisisPage() {
                 </Button>
               </Link>
 
-              <Link href="/manajemen-file">
+              {/* <Link href="/manajemen-file">
                 <Button
                   variant="outline"
                   className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
@@ -205,18 +214,30 @@ export default function RiwayatAnalisisPage() {
                   <FileText className="h-4 w-4 mr-2" />
                   {!sidebarCollapsed && "Manajemen File"}
                 </Button>
-              </Link>
+              </Link> */}
 
               {user?.role === 'admin' && (
-                <Link href="/manajemen-pengguna">
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    {!sidebarCollapsed && "Manajemen Pengguna"}
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/manajemen-instansi">
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+                    >
+                      <Building2 className="h-4 w-4 mr-2" />
+                      {!sidebarCollapsed && "Manajemen Institusi"}
+                    </Button>
+                  </Link>
+
+                  <Link href="/manajemen-pengguna">
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      {!sidebarCollapsed && "Manajemen Pengguna"}
+                    </Button>
+                  </Link>
+                </>
               )}
             </div>
           </div>
@@ -358,20 +379,6 @@ export default function RiwayatAnalisisPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div>
-                            <span className="text-sm text-muted-foreground">Skor Kepatuhan:</span>
-                            <div className={`text-lg font-semibold ${getScoreColor(item.score_compliance)}`}>
-                              {Math.round(item.score_compliance * 100)}%
-                            </div>
-                          </div>
-                          <div>
-                            <span className="text-sm text-muted-foreground">Tingkat Risiko:</span>
-                            <Badge className={getRiskLevelColor(item.tingkat_risiko)}>
-                              {getRiskLevelText(item.tingkat_risiko)}
-                            </Badge>
-                          </div>
-                        </div>
                         <div className="flex items-center gap-2">
                           <Link href={`/analisis-dokumen?id=${item.id}`}>
                             <Button variant="outline" size="sm">
@@ -379,10 +386,10 @@ export default function RiwayatAnalisisPage() {
                               Lihat Detail
                             </Button>
                           </Link>
-                          <Button variant="outline" size="sm">
+                          {/* <Button variant="outline" size="sm">
                             <Download className="h-4 w-4 mr-1" />
                             Download
-                          </Button>
+                          </Button> */}
                         </div>
                       </div>
 

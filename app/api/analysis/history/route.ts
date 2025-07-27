@@ -1,28 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { getCurrentUser } from '@/lib/auth'
 
 const prisma = new PrismaClient()
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = getCurrentUser(request)
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('user_id')
     const institutionId = searchParams.get('institution_id')
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    console.log('Fetching analysis history...')
-    console.log('User ID:', userId)
-    console.log('Institution ID:', institutionId)
-
     let whereClause: any = {}
 
-    if (userId) {
-      whereClause.user_id = parseInt(userId)
-    }
-
-    if (institutionId) {
-      whereClause.institution_id = parseInt(institutionId)
+    // Role-based access control
+    if (currentUser.role === 'admin' && currentUser.institutionId === 0) {
+      // Admin with institution_id 0 can see all analysis results
+      if (userId) {
+        whereClause.user_id = parseInt(userId)
+      }
+      if (institutionId) {
+        whereClause.institution_id = parseInt(institutionId)
+      }
+    } else {
+      // Regular users can see all analysis results for their institution
+      whereClause.institution_id = currentUser.institutionId
+      if (userId) { // Optional: if a specific user_id is requested, filter by it within the institution
+        whereClause.user_id = parseInt(userId)
+      }
     }
 
     // Fetch analysis results with related data
@@ -88,8 +103,6 @@ export async function GET(request: NextRequest) {
       where: whereClause
     })
 
-    console.log(`Found ${analysisResults.length} analysis results`)
-
     return NextResponse.json({
       success: true,
       data: analysisResults,
@@ -102,8 +115,6 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error fetching analysis history:', error)
-
     return NextResponse.json(
       {
         success: false,

@@ -15,11 +15,12 @@ import AddUserModal from "@/components/AddUserModal";
 import EditUserModal from "@/components/EditUserModal";
 import DeleteUserModal from "@/components/DeleteUserModal";
 
-const INSTANSIS = [
-  "BPS",
-  "Kemenkeu",
-  "Kemendagri"
-];
+// Interface untuk data instansi dari database
+interface InstansiData {
+  id: number;
+  name: string;
+  category: string;
+}
 
 interface User {
   id: number
@@ -36,12 +37,36 @@ interface User {
 
 export default function ManajemenPenggunaPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [instansi, setInstansi] = useState(INSTANSIS[0]);
+  const [instansiList, setInstansiList] = useState<InstansiData[]>([]);
+  const [selectedInstansi, setSelectedInstansi] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState<string>("all");
   const { user, logout, token } = useAuth();
+
+  // Fetch instansi data from database
+  useEffect(() => {
+    const fetchInstansi = async () => {
+      try {
+        const response = await fetch('/api/institutions', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setInstansiList(data);
+        }
+      } catch (error) {
+        console.error('Error fetching instansi:', error);
+      }
+    };
+
+    if (token) {
+      fetchInstansi();
+    }
+  }, [token]);
 
   useEffect(() => {
     if (token) {
@@ -76,17 +101,16 @@ export default function ManajemenPenggunaPage() {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesFilter = filterRole === "all" || user.role === filterRole
-    return matchesSearch && matchesFilter
+    const matchesInstansi = selectedInstansi === "" || user.institution?.name === selectedInstansi
+    return matchesSearch && matchesFilter && matchesInstansi
   });
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'admin':
         return 'bg-red-100 text-red-800'
-      case 'operator':
+      case 'user':
         return 'bg-blue-100 text-blue-800'
-      case 'viewer':
-        return 'bg-gray-100 text-gray-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -150,7 +174,7 @@ export default function ManajemenPenggunaPage() {
                 </Button>
               </Link>
 
-              <Link href="/manajemen-file">
+              {/* <Link href="/manajemen-file">
                 <Button
                   variant="outline"
                   className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
@@ -158,19 +182,31 @@ export default function ManajemenPenggunaPage() {
                   <FileText className="h-4 w-4 mr-2" />
                   {!sidebarCollapsed && "Manajemen File"}
                 </Button>
-              </Link>
+              </Link> */}
 
 
               {user?.role === 'admin' && (
-                <Link href="/manajemen-pengguna">
-                  <Button
-                    variant="default"
-                    className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    {!sidebarCollapsed && "Manajemen Pengguna"}
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/manajemen-instansi">
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+                    >
+                      <Building2 className="h-4 w-4 mr-2" />
+                      {!sidebarCollapsed && "Manajemen Instansi"}
+                    </Button>
+                  </Link>
+
+                  <Link href="/manajemen-pengguna">
+                    <Button
+                      variant="default"
+                      className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      {!sidebarCollapsed && "Manajemen Pengguna"}
+                    </Button>
+                  </Link>
+                </>
               )}
 
             </div>
@@ -186,16 +222,38 @@ export default function ManajemenPenggunaPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="min-w-[220px] justify-between">
-                    {instansi}
+                    {selectedInstansi || user?.institution?.name || 'Pilih Instansi'}
                     <span className="ml-2">▼</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {INSTANSIS.map((item) => (
-                    <DropdownMenuItem key={item} onClick={() => setInstansi(item)}>
-                      {item}
+                  <DropdownMenuItem onClick={() => setSelectedInstansi("")}>
+                    Semua Instansi
+                  </DropdownMenuItem>
+                  {instansiList.map((instansi) => (
+                    <DropdownMenuItem key={instansi.id} onClick={() => setSelectedInstansi(instansi.name)}>
+                      {instansi.name}
                     </DropdownMenuItem>
                   ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filter: {filterRole === "all" ? "Semua Role" : filterRole}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setFilterRole("all")}>
+                    Semua Role
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterRole("admin")}>
+                    Admin
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterRole("user")}>
+                    User
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <div className="flex items-center gap-2">
@@ -232,25 +290,7 @@ export default function ManajemenPenggunaPage() {
                     className="pl-10"
                   />
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      Filter: {filterRole === "all" ? "Semua Role" : filterRole}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setFilterRole("all")}>
-                      Semua Role
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterRole("admin")}>
-                      Admin
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterRole("user")}>
-                      User
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {/* The DropdownMenu for Filter was moved outside the main content */}
               </div>
 
               {/* Users Table */}
@@ -266,7 +306,7 @@ export default function ManajemenPenggunaPage() {
                   <div className="text-center">
                     <div className="text-lg font-semibold mb-2">Tidak ada pengguna</div>
                     <div className="text-sm text-muted-foreground">
-                      {searchQuery || filterRole !== "all"
+                      {searchQuery || filterRole !== "all" || selectedInstansi !== ""
                         ? "Coba ubah filter atau kata kunci pencarian"
                         : "Belum ada pengguna yang terdaftar"}
                     </div>
@@ -306,7 +346,7 @@ export default function ManajemenPenggunaPage() {
                           </td>
                           <td className="py-3">
                             <div className="text-sm">
-                              {new Date(user.created_at).toLocaleDateString('id-ID')}
+                              {user.created_at ? new Date(user.created_at).toLocaleDateString('id-ID') : '-'}
                             </div>
                           </td>
                           <td className="py-3">

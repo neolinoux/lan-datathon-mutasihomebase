@@ -7,18 +7,12 @@ const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Saving analysis result to database...')
 
     const formData = await request.formData()
     const analysisResult = JSON.parse(formData.get('analysis_result') as string)
     const files = formData.getAll('files') as File[]
     const userId = parseInt(formData.get('user_id') as string)
     const institutionId = parseInt(formData.get('institution_id') as string)
-
-    console.log('Analysis result:', analysisResult)
-    console.log('Files count:', files.length)
-    console.log('User ID:', userId)
-    console.log('Institution ID:', institutionId)
 
     // Extract data from API response
     const {
@@ -29,10 +23,12 @@ export async function POST(request: NextRequest) {
         include_dok_keuangan,
         path_dok_kegiatan,
         path_dok_keuangan,
-        list_peraturan_terkait,
-        indikator_compliance,
-        summary_indicator_compliance,
-        rekomendasi_per_indikator
+        data_response: {
+          list_peraturan_terkait,
+          indikator_compliance,
+          summary_indicator_compliance,
+          rekomendasi_per_indikator
+        }
       }
     } = analysisResult
 
@@ -52,8 +48,6 @@ export async function POST(request: NextRequest) {
         status: 'success'
       }
     })
-
-    console.log('Analysis result saved with ID:', savedAnalysis.id)
 
     // Save files
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'analysis', institutionId.toString(), userId.toString())
@@ -126,8 +120,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    console.log('Analysis result and all related data saved successfully')
-
     return NextResponse.json({
       success: true,
       message: 'Analysis result saved successfully',
@@ -135,8 +127,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error saving analysis result:', error)
-
     return NextResponse.json(
       {
         success: false,

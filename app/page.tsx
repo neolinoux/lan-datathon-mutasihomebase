@@ -95,7 +95,7 @@ export default function DashboardPage() {
   const [selectedInstansi, setSelectedInstansi] = useState<InstansiData | null>(null)
   const [instansiList, setInstansiList] = useState<InstansiData[]>([])
   const { theme, setTheme } = useTheme()
-  const { user, logout } = useAuth()
+  const { user, logout, token } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -106,9 +106,11 @@ export default function DashboardPage() {
         setIsLoading(true)
         setError(null)
 
-        const response = await fetch('/api/instansi')
-
-        console.log('Local API Response status:', response.status)
+        const response = await fetch('/api/instansi', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
 
         if (!response.ok) {
           const errorData = await response.json()
@@ -116,7 +118,6 @@ export default function DashboardPage() {
         }
 
         const data: InstansiData[] = await response.json()
-        console.log('Parsed JSON data from local API:', data)
 
         if (!Array.isArray(data) || data.length === 0) {
           throw new Error('API returned empty or invalid data array')
@@ -139,7 +140,7 @@ export default function DashboardPage() {
       }
     }
     fetchInstansiData()
-  }, [user])
+  }, [user, token])
 
 
   if (isLoading) {
@@ -221,7 +222,7 @@ export default function DashboardPage() {
                 </Button>
               </Link>
 
-              <Link href="/manajemen-file">
+              {/* <Link href="/manajemen-file">
                 <Button
                   variant="outline"
                   className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
@@ -229,18 +230,30 @@ export default function DashboardPage() {
                   <FileText className="h-4 w-4 mr-2" />
                   {!sidebarCollapsed && "Manajemen File"}
                 </Button>
-              </Link>
+              </Link> */}
 
               {user?.role === 'admin' && (
-                <Link href="/manajemen-pengguna">
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    {!sidebarCollapsed && "Manajemen Pengguna"}
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/manajemen-instansi">
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+                    >
+                      <Building2 className="h-4 w-4 mr-2" />
+                      {!sidebarCollapsed && "Manajemen Instansi"}
+                    </Button>
+                  </Link>
+
+                  <Link href="/manajemen-pengguna">
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      {!sidebarCollapsed && "Manajemen Pengguna"}
+                    </Button>
+                  </Link>
+                </>
               )}
             </div>
           </div>
@@ -355,7 +368,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Total Peraturan:</span>
-                        <span className="text-sm font-medium">{selectedInstansi.total_peraturan.toLocaleString()}</span>
+                        <span className="text-sm font-medium">{selectedInstansi.total_peraturan}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Update Terakhir:</span>
@@ -374,7 +387,7 @@ export default function DashboardPage() {
                       <FileText className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{selectedInstansi.dm_total_dokumen.toLocaleString()}</div>
+                      <div className="text-2xl font-bold">{selectedInstansi.total_dokumen}</div>
                     </CardContent>
                   </Card>
 
@@ -385,7 +398,7 @@ export default function DashboardPage() {
                       <Shield className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{selectedInstansi.dm_mean_skor_kepatuhan}%</div>
+                      <div className="text-2xl font-bold">{selectedInstansi.mean_skor_kepatuhan}%</div>
                     </CardContent>
                   </Card>
 
@@ -396,7 +409,7 @@ export default function DashboardPage() {
                       <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{selectedInstansi.dm_mean_sentiment_positive}%</div>
+                      <div className="text-2xl font-bold">{selectedInstansi.mean_sentiment_positive}%</div>
                     </CardContent>
                   </Card>
 
@@ -407,7 +420,7 @@ export default function DashboardPage() {
                       <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{selectedInstansi.dm_total_user.toLocaleString()}</div>
+                      <div className="text-2xl font-bold">{selectedInstansi.total_user}</div>
                     </CardContent>
                   </Card>
                 </div>

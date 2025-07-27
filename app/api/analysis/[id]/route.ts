@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { getCurrentUser } from '@/lib/auth'
 
 const prisma = new PrismaClient()
 
@@ -8,6 +9,15 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check authentication
+    const currentUser = getCurrentUser(request)
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const analysisId = parseInt(params.id)
 
     if (isNaN(analysisId)) {
@@ -17,10 +27,16 @@ export async function GET(
       )
     }
 
-    console.log('Fetching analysis detail for ID:', analysisId)
+    // Build where clause based on user role
+    let whereClause: any = { id: analysisId }
+
+    if (!(currentUser.role === 'admin' && currentUser.institutionId === 0)) {
+      // Regular users can access analysis for their institution
+      whereClause.institution_id = currentUser.institutionId
+    }
 
     const analysis = await prisma.analysisResult.findUnique({
-      where: { id: analysisId },
+      where: whereClause,
       include: {
         user: {
           select: {
@@ -98,34 +114,34 @@ export async function GET(
         include_dok_keuangan: analysis.include_dok_keuangan,
         path_dok_kegiatan: analysis.path_dok_kegiatan,
         path_dok_keuangan: analysis.path_dok_keuangan,
-        list_peraturan_terkait: analysis.related_regulations.map(reg => ({
-          judul_peraturan: reg.judul_peraturan,
-          instansi: reg.instansi,
-          tingkat_kepatuhan: reg.tingkat_kepatuhan,
-          url_pera: reg.url_pera
-        })),
-        indikator_compliance: analysis.compliance_indicators.map(ind => ({
-          id_indikator: ind.id_indikator,
-          nama: ind.nama,
-          encode_class: ind.encode_class,
-          detail_analisis: ind.detail_analisis,
-          alasan_analisis: ind.alasan_analisis,
-          score_indikator: ind.score_indikator
-        })),
-        summary_indicator_compliance: {
-          tingkat_risiko: analysis.tingkat_risiko,
-          score_compliance: analysis.score_compliance
-        },
-        rekomendasi_per_indikator: analysis.recommendations.map(rec => ({
-          id_indikator: rec.id_indikator,
-          judul_rekomendasi: rec.judul_rekomendasi,
-          deskripsi_rekomendasi: rec.deskripsi_rekomendasi,
-          langkah_rekomendasi: rec.langkah_rekomendasi
-        }))
+        data_response: {
+          list_peraturan_terkait: analysis.related_regulations.map(reg => ({
+            judul_peraturan: reg.judul_peraturan,
+            instansi: reg.instansi,
+            tingkat_kepatuhan: reg.tingkat_kepatuhan,
+            url_pera: reg.url_pera
+          })),
+          indikator_compliance: analysis.compliance_indicators.map(ind => ({
+            id_indikator: ind.id_indikator,
+            nama: ind.nama,
+            encode_class: ind.encode_class,
+            detail_analisis: ind.detail_analisis,
+            alasan_analisis: ind.alasan_analisis,
+            score_indikator: ind.score_indikator
+          })),
+          summary_indicator_compliance: {
+            tingkat_risiko: analysis.tingkat_risiko,
+            score_compliance: analysis.score_compliance
+          },
+          rekomendasi_per_indikator: analysis.recommendations.map(rec => ({
+            id_indikator: rec.id_indikator,
+            judul_rekomendasi: rec.judul_rekomendasi,
+            deskripsi_rekomendasi: rec.deskripsi_rekomendasi,
+            langkah_rekomendasi: rec.langkah_rekomendasi
+          }))
+        }
       }
     }
-
-    console.log('Analysis detail fetched successfully')
 
     return NextResponse.json({
       success: true,

@@ -34,30 +34,32 @@ interface BubbleAISentimentProps {
     include_dok_keuangan: boolean;
     path_dok_kegiatan: string;
     path_dok_keuangan: string;
-    list_peraturan_terkait: Array<{
-      judul_peraturan: string;
-      instansi: string;
-      tingkat_kepatuhan: number;
-      url_pera: string;
-    }>;
-    indikator_compliance: Array<{
-      id_indikator: number;
-      nama: string;
-      encode_class: number;
-      detail_analisis: string;
-      alasan_analisis: string;
-      score_indikator: number;
-    }>;
-    summary_indicator_compliance: {
-      tingkat_risiko: number;
-      score_compliance: number;
+    data_response: {
+      list_peraturan_terkait: Array<{
+        judul_peraturan: string;
+        instansi: string;
+        tingkat_kepatuhan: number;
+        url_pera: string;
+      }>;
+      indikator_compliance: Array<{
+        id_indikator: number;
+        nama: string;
+        encode_class: number;
+        detail_analisis: string;
+        alasan_analisis: string;
+        score_indikator: number;
+      }>;
+      summary_indicator_compliance: {
+        tingkat_risiko: number;
+        score_compliance: number;
+      };
+      rekomendasi_per_indikator: Array<{
+        id_indikator: number;
+        judul_rekomendasi: string;
+        deskripsi_rekomendasi: string;
+        langkah_rekomendasi: string[];
+      }>;
     };
-    rekomendasi_per_indikator: Array<{
-      id_indikator: number;
-      judul_rekomendasi: string;
-      deskripsi_rekomendasi: string;
-      langkah_rekomendasi: string[];
-    }>;
   };
   error?: string;
 }
@@ -101,9 +103,9 @@ export default function BubbleAISentiment({ sentimentData, fileName, analysisDat
 
   // Convert API data to sentiment format if available
   const getSentimentFromAPI = () => {
-    if (!analysisData) return null;
+    if (!analysisData || !analysisData.data_response) return null;
 
-    const score = analysisData.summary_indicator_compliance.score_compliance;
+    const score = analysisData.data_response.summary_indicator_compliance.score_compliance;
     let sentiment: 'positif' | 'negatif' | 'netral';
     let riskLevel: 'rendah' | 'sedang' | 'tinggi';
 
@@ -118,7 +120,7 @@ export default function BubbleAISentiment({ sentimentData, fileName, analysisDat
       riskLevel = 'tinggi';
     }
 
-    const recommendations = analysisData.rekomendasi_per_indikator.map((rec, index) => ({
+    const recommendations = analysisData.data_response.rekomendasi_per_indikator.map((rec, index) => ({
       id: `rec-${rec.id_indikator}`,
       title: rec.judul_rekomendasi,
       category: rec.judul_rekomendasi.split(' ')[1] || 'Umum',
@@ -178,14 +180,14 @@ export default function BubbleAISentiment({ sentimentData, fileName, analysisDat
         <Card className="p-5 border-l-4 border-yellow-400 bg-muted text-card-foreground flex flex-col gap-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="font-semibold text-base flex-1">Analisis Sentimen</span>
-            <Badge className={`${getSentimentColor(finalSentimentData.sentiment)} text-white`}>
+            <Badge className={`${getSentimentColor(finalSentimentData.sentiment)} font-bold`}>
               {finalSentimentData.sentiment.charAt(0).toUpperCase() + finalSentimentData.sentiment.slice(1)}
             </Badge>
             <span className="text-xs text-muted-foreground">Kepercayaan: {finalSentimentData.confidence}%</span>
           </div>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm">Tingkat Risiko:</span>
-            <Badge className={`${getRiskLevelColorBadge(finalSentimentData.riskLevel)} text-white`}>
+            <Badge className={`${getRiskLevelColorBadge(finalSentimentData.riskLevel)} font-bold`}>
               {finalSentimentData.riskLevel.charAt(0).toUpperCase() + finalSentimentData.riskLevel.slice(1)}
             </Badge>
           </div>
@@ -199,31 +201,28 @@ export default function BubbleAISentiment({ sentimentData, fileName, analysisDat
             <Card key={rec.id} className="p-4 border-l-4 border-yellow-400 bg-card text-card-foreground flex flex-col gap-2 mb-2">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-semibold flex-1">{rec.title}</span>
-                <Badge variant="outline" className="mr-1">{rec.category}</Badge>
-                <Badge className="bg-yellow-500 text-white">{rec.level}</Badge>
+                <Badge className={`${getRiskLevelColorBadge(rec.level.toLowerCase())} font-bold`}>
+                  {rec.level}
+                </Badge>
               </div>
-              <div className="text-sm text-muted-foreground mb-2">{rec.description}</div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
+              <div className="text-sm text-muted-foreground mb-2">
+                {rec.description}
+              </div>
+              <div className="space-y-1">
+                <div className="text-xs font-medium text-blue-700">Langkah-langkah:</div>
+                {rec.steps.map((step, index) => (
+                  <div key={index} className="flex items-start gap-2 text-xs">
+                    <CheckCircle2 className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>{step}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
                 <span>Prioritas: {rec.priority}</span>
                 <span>Estimasi: {rec.estimatedTime}</span>
-                <span className={`font-medium ${getImpactColor(rec.impact)}`}>
+                <span className={`${getImpactColor(rec.impact)}`}>
                   Dampak: {rec.impact.charAt(0).toUpperCase() + rec.impact.slice(1)}
                 </span>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 font-medium mb-1">
-                  <CheckCircle2 size={18} className="text-blue-600" />
-                  Langkah-langkah Implementasi:
-                </div>
-                <ol className="list-decimal ml-6 space-y-1 text-sm">
-                  {rec.steps.map((step, j) => (
-                    <li key={j}>{step}</li>
-                  ))}
-                </ol>
-              </div>
-              <div className="flex gap-2 mt-2">
-                <Button variant="outline" size="sm">Lihat Detail</Button>
-                <Button size="sm">Mulai Implementasi</Button>
               </div>
             </Card>
           ))}

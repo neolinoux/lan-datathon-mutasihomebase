@@ -87,7 +87,6 @@ export default function AddUserModal({ onUserAdded }: AddUserModalProps) {
 
       if (response.ok) {
         const result = await response.json()
-        console.log('User added successfully:', result)
 
         // Reset form
         setName("")
@@ -183,8 +182,7 @@ export default function AddUserModal({ onUserAdded }: AddUserModalProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="operator">Operator</SelectItem>
-                <SelectItem value="viewer">Viewer</SelectItem>
+                <SelectItem value="user">User</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -6,21 +6,35 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Eye, Download, FileText, FileSpreadsheet, FileImage } from "lucide-react"
 
+interface AnalysisDocument {
+  id: number;
+  analysis_id: string;
+  judul_kegiatan: string;
+  deskripsi_kegiatan: string;
+  include_dok_keuangan: boolean;
+  path_dok_kegiatan: string;
+  path_dok_keuangan: string | null;
+  created_at: string;
+  institution: {
+    id: number;
+    name: string;
+  };
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  analysis_files: Array<{
+    id: number;
+    file_name: string;
+    file_path: string;
+    file_type: string;
+    file_size: number;
+  }>;
+}
+
 interface DocumentPreviewProps {
-  document: {
-    id: number
-    title: string
-    description: string
-    filename: string
-    file_path: string
-    file_size: number
-    file_type: string
-    created_at: string
-    uploaded_by_user: {
-      name: string
-      email: string
-    }
-  }
+  document: AnalysisDocument
 }
 
 export default function DocumentPreview({ document }: DocumentPreviewProps) {
@@ -41,14 +55,14 @@ export default function DocumentPreview({ document }: DocumentPreviewProps) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  const handleDownload = () => {
-    // Create a temporary link to download the file
-    const link = document.createElement('a')
-    link.href = document.file_path
-    link.download = document.filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
   }
 
   return (
@@ -61,95 +75,67 @@ export default function DocumentPreview({ document }: DocumentPreviewProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Preview Dokumen</DialogTitle>
+          <DialogTitle>Preview Dokumen Analisis</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* File Info */}
+          {/* Analysis Info */}
           <div className="flex items-start gap-4 p-4 border rounded-lg">
             <div className="flex-shrink-0">
-              {getFileIcon(document.file_type)}
+              <FileText className="h-6 w-6 text-blue-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate">{document.title}</h3>
-              <p className="text-sm text-muted-foreground mb-2">{document.filename}</p>
+              <h3 className="font-semibold text-lg truncate">{document.judul_kegiatan}</h3>
+              <p className="text-sm text-muted-foreground mb-2">ID Analisis: {document.analysis_id}</p>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">{formatFileSize(document.file_size)}</Badge>
-                <Badge variant="outline">{document.file_type.split('/')[1]?.toUpperCase()}</Badge>
+                <Badge variant="secondary">{document.institution.name}</Badge>
+                <Badge variant="outline">{document.include_dok_keuangan ? 'Dengan Dok. Keuangan' : 'Tanpa Dok. Keuangan'}</Badge>
               </div>
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <h4 className="font-medium mb-2">Deskripsi</h4>
+            <h4 className="font-medium mb-2">Deskripsi Kegiatan</h4>
             <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
-              {document.description}
+              {document.deskripsi_kegiatan}
             </p>
+          </div>
+
+          {/* Files */}
+          <div>
+            <h4 className="font-medium mb-2">Dokumen Terkait</h4>
+            <div className="space-y-2">
+              {document.analysis_files.map((file, index) => (
+                <div key={file.id} className="flex items-center gap-3 p-3 border rounded">
+                  <div className="flex-shrink-0">
+                    {getFileIcon(file.file_type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{file.file_name}</p>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      <Badge variant="secondary">{formatFileSize(file.file_size)}</Badge>
+                      <Badge variant="outline">{file.file_type.split('/')[1]?.toUpperCase()}</Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Metadata */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="font-medium">Diunggah oleh:</span>
-              <p className="text-muted-foreground">{document.uploaded_by_user.name}</p>
-              <p className="text-muted-foreground text-xs">{document.uploaded_by_user.email}</p>
+              <span className="font-medium">Dianalisis oleh:</span>
+              <p className="text-muted-foreground">{document.user.name}</p>
+              <p className="text-muted-foreground text-xs">{document.user.email}</p>
             </div>
             <div>
-              <span className="font-medium">Tanggal upload:</span>
+              <span className="font-medium">Tanggal analisis:</span>
               <p className="text-muted-foreground">
-                {new Date(document.created_at).toLocaleDateString('id-ID', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
+                {formatDate(document.created_at)}
               </p>
             </div>
-          </div>
-
-          {/* Preview Area */}
-          <div>
-            <h4 className="font-medium mb-2">Preview</h4>
-            <div className="border rounded-lg p-4 bg-muted/50 min-h-[200px] flex items-center justify-center">
-              {document.file_type.includes('pdf') ? (
-                <div className="text-center">
-                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">PDF Preview</p>
-                  <p className="text-xs text-muted-foreground">Klik download untuk melihat file lengkap</p>
-                </div>
-              ) : document.file_type.includes('word') ? (
-                <div className="text-center">
-                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">Word Document</p>
-                  <p className="text-xs text-muted-foreground">Klik download untuk membuka di Word</p>
-                </div>
-              ) : document.file_type.includes('excel') ? (
-                <div className="text-center">
-                  <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">Excel Spreadsheet</p>
-                  <p className="text-xs text-muted-foreground">Klik download untuk membuka di Excel</p>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <FileImage className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">File Preview</p>
-                  <p className="text-xs text-muted-foreground">Klik download untuk melihat file</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Tutup
-            </Button>
-            <Button onClick={handleDownload} className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
           </div>
         </div>
       </DialogContent>

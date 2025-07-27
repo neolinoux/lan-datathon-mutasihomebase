@@ -36,7 +36,6 @@ export async function GET(
 
     return NextResponse.json(user)
   } catch (error) {
-    console.error('Get user error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -61,7 +60,6 @@ export async function PUT(
     }
 
     const body = await request.json()
-    console.log('Update user request body:', body)
 
     const { name, email, role, institution_id, is_active } = body
 
@@ -69,8 +67,6 @@ export async function PUT(
     if (!name || !email || !role) {
       return NextResponse.json({ error: 'Name, email, and role are required' }, { status: 400 })
     }
-
-    console.log('Updating user with data:', { userId, name, email, role, institution_id, is_active })
 
     // Check if email already exists (excluding current user)
     const existingUser = await prisma.user.findFirst({
@@ -101,8 +97,6 @@ export async function PUT(
       }
     })
 
-    console.log('User updated successfully:', updatedUser)
-
     // Format response to match expected structure
     const formattedUser = {
       id: updatedUser.id,
@@ -119,8 +113,6 @@ export async function PUT(
       user: formattedUser
     })
   } catch (error) {
-    console.error('Update user error details:', error)
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -165,7 +157,6 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'User deleted successfully' })
   } catch (error) {
-    console.error('Delete user error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 } 

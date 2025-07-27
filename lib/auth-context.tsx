@@ -72,23 +72,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData)
       } else if (response.status === 401) {
         // Token invalid, clear it
-        console.log('Token invalid, clearing session')
         localStorage.removeItem('auth_token')
         setToken(null)
         setUser(null)
       } else if (response.status === 500) {
         // Server error, likely database connection issue
-        console.error('Server error during token verification:', response.status)
         // Clear token to force re-login
         localStorage.removeItem('auth_token')
         setToken(null)
         setUser(null)
       } else {
         // Other errors, keep token but log error
-        console.error('Token verification error:', response.status)
       }
     } catch (error) {
-      console.error('Token verification failed:', error)
       // Network error or server down, clear token to force re-login
       localStorage.removeItem('auth_token')
       setToken(null)
