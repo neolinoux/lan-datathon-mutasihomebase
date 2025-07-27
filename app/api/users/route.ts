@@ -20,10 +20,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get users based on admin role
-    let users
     // Admin can see all users regardless of their own institution
-    users = await prisma.user.findMany({
+    const users = await prisma.user.findMany({
       select: {
         id: true,
         name: true,

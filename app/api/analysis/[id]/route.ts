@@ -21,7 +21,7 @@ export async function GET(
     }
 
     // Build where clause based on user role (if authenticated)
-    const whereClause: any = { id: analysisId }
+    const whereClause: { id: number, institution_id?: number } = { id: analysisId }
 
     if (currentUser) {
       if (!(currentUser.role === 'admin' && currentUser.institutionId === 0)) {

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     if (currentUser) {
       if (!(currentUser.role === 'admin' && currentUser.institutionId === 0)) {
         // Regular users can only see their institution
-        filteredData = data.filter((inst: any) => inst.id_instansi === currentUser.institutionId)
+        filteredData = data.filter((inst: { id_instansi: number }) => inst.id_instansi === currentUser.institutionId)
       }
       // Admin with institution_id 0 can see all data (no filtering needed)
     }

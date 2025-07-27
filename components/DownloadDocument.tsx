@@ -40,7 +40,7 @@ export default function DownloadDocument({ document: analysisDoc }: DownloadDocu
   const [downloading, setDownloading] = useState(false)
   const { token, user } = useAuth()
 
-  const handleDownload = async (file: any) => {
+  const handleDownload = async (file: { file_name: string, file_path: string }) => {
     setDownloading(true)
 
     try {

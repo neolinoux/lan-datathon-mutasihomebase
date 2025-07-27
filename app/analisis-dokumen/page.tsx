@@ -100,7 +100,7 @@ export default function AnalisisDokumenPage() {
           const data = await response.json();
           setInstansiList(data);
           if (data.length > 0) {
-            const firstRegularInst = data.find((inst: any) => inst.id !== 0);
+            const firstRegularInst = data.find((inst: { id: number }) => inst.id !== 0);
             setInstansi(firstRegularInst ? firstRegularInst.name : data[0].name);
           }
         }

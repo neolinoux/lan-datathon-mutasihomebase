@@ -74,7 +74,7 @@ export default function ManajemenFilePage() {
 
           // Set instansi based on user role
           if (user?.role === 'admin' && user?.institution?.id === 0) {
-            const firstRegularInst = data.find((inst: any) => inst.id !== 0);
+            const firstRegularInst = data.find((inst: { id: number }) => inst.id !== 0);
             setInstansi(firstRegularInst?.name || "");
           } else {
             // User sees only their institution
