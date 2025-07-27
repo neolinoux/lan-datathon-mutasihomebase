@@ -906,6 +906,75 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Etika dan Antikorupsi */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Etika dan Antikorupsi</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sangat Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.etika_antikorupsi_class1 || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sesuaikan Sebagian</div>
+                      <div className="text-lg font-bold">{currentInstansi?.etika_antikorupsi_class2 || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Tidak Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.etika_antikorupsi_class3 || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.etika_antikorupsi_none || 0}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pengelolaan Sumber Daya */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Pengelolaan Sumber Daya</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sangat Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.pengelolaan_sumber_daya_class1 || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sesuaikan Sebagian</div>
+                      <div className="text-lg font-bold">{currentInstansi?.pengelolaan_sumber_daya_class2 || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Tidak Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.pengelolaan_sumber_daya_class3 || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.pengelolaan_sumber_daya_none || 0}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Evaluasi RTL */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Evaluasi RTL</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sangat Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.evalusi_rtl_class1 || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Sesuaikan Sebagian</div>
+                      <div className="text-lg font-bold">{currentInstansi?.evalusi_rtl_class2 || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Tidak Sesuai</div>
+                      <div className="text-lg font-bold">{currentInstansi?.evalusi_rtl_class3 || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.evalusi_rtl_none || 0}</div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -1004,6 +1073,52 @@ export default function DashboardPage() {
                     <div className="bg-gray-500 text-white text-center p-2 rounded">
                       <div className="text-xs">None</div>
                       <div className="text-lg font-bold">{currentInstansi?.regulasi_sentiment_none || 0}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Etika dan Antikorupsi */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Etika dan Antikorupsi</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Positif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.etika_antikorupsi_sentiment_positive || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Netral</div>
+                      <div className="text-lg font-bold">{currentInstansi?.etika_antikorupsi_sentiment_neutral || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Negatif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.etika_antikorupsi_sentiment_negative || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.etika_antikorupsi_sentiment_none || 0}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pengelolaan Sumber Daya */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Pengelolaan Sumber Daya</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-green-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Positif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.pengelolaan_sumber_daya_sentiment_positive || 0}</div>
+                    </div>
+                    <div className="bg-yellow-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Netral</div>
+                      <div className="text-lg font-bold">{currentInstansi?.pengelolaan_sumber_daya_sentiment_neutral || 0}</div>
+                    </div>
+                    <div className="bg-red-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">Negatif</div>
+                      <div className="text-lg font-bold">{currentInstansi?.pengelolaan_sumber_daya_sentiment_negative || 0}</div>
+                    </div>
+                    <div className="bg-gray-500 text-white text-center p-2 rounded">
+                      <div className="text-xs">None</div>
+                      <div className="text-lg font-bold">{currentInstansi?.pengelolaan_sumber_daya_sentiment_none || 0}</div>
                     </div>
                   </div>
                 </div>

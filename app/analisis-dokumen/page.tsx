@@ -229,11 +229,8 @@ export default function AnalisisDokumenPage() {
           saveFormData.append('user_id', user?.id?.toString() || '1');
           saveFormData.append('institution_id', saveInstitutionId?.toString() || '1');
 
-          // Add files to save
-          saveFormData.append('files', fileLaporan);
-          if (enableAnggaran && fileAnggaran) {
-            saveFormData.append('files', fileAnggaran);
-          }
+          // Files are already uploaded to Vercel Blob in analyse-document endpoint
+          // No need to send files again to save endpoint
 
           // Actually call the save API
           const saveResponse = await fetch('/api/analysis/save', {

@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { put } from "@vercel/blob"
 
 const prisma = new PrismaClient()
 
@@ -10,12 +7,15 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const analysisResult = JSON.parse(formData.get('analysis_result') as string)
-    const files = formData.getAll('files') as File[]
     const userId = parseInt(formData.get('user_id') as string)
     const institutionId = parseInt(formData.get('institution_id') as string)
 
+    // Extract blob URLs from analysis result
+    const dokKegiatanBlobUrl = analysisResult.dok_kegiatan_url || null
+    const dokKeuanganBlobUrl = analysisResult.dok_keuangan_url || null
+
     // Extract data from API response with better error handling
-    let id_dokumen, judul_kegiatan, deskripsi_kegiatan, include_dok_keuangan, path_dok_kegiatan, path_dok_keuangan
+    let id_dokumen, judul_kegiatan, deskripsi_kegiatan, include_dok_keuangan
     let list_peraturan_terkait, indikator_compliance, summary_indicator_compliance, rekomendasi_per_indikator
 
     try {
@@ -24,8 +24,6 @@ export async function POST(request: NextRequest) {
       judul_kegiatan = data.judul_kegiatan
       deskripsi_kegiatan = data.deskripsi_kegiatan
       include_dok_keuangan = data.include_dok_keuangan
-      path_dok_kegiatan = data.path_dok_kegiatan
-      path_dok_keuangan = data.path_dok_keuangan
 
       const { data_response } = data
       list_peraturan_terkait = data_response.list_peraturan_terkait
@@ -37,7 +35,7 @@ export async function POST(request: NextRequest) {
       throw new Error('Invalid analysis result structure')
     }
 
-    // Create analysis result record
+    // Create analysis result record with blob URLs
     const savedAnalysis = await prisma.analysisResult.create({
       data: {
         analysis_id: id_dokumen,
@@ -46,40 +44,37 @@ export async function POST(request: NextRequest) {
         judul_kegiatan,
         deskripsi_kegiatan,
         include_dok_keuangan,
-        path_dok_kegiatan,
-        path_dok_keuangan,
+        path_dok_kegiatan: dokKegiatanBlobUrl, // Use blob URL instead of local path
+        path_dok_keuangan: dokKeuanganBlobUrl, // Use blob URL instead of local path
         score_compliance: summary_indicator_compliance.score_compliance,
         tingkat_risiko: summary_indicator_compliance.tingkat_risiko,
         status: 'success'
       }
     })
 
-    // Save files
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'analysis', institutionId.toString(), userId.toString())
-    await mkdir(uploadDir, { recursive: true })
-
-    for (const file of files) {
-      const timestamp = Date.now()
-      const fileName = `${timestamp}_${file.name}`
-      const filePath = join(uploadDir, fileName)
-
-      // Save file to disk
-      const bytes = await file.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      await writeFile(filePath, buffer)
-
-      // Determine file type
-      const fileType = file.name.includes('keuangan') ? 'dok_keuangan' : 'dok_kegiatan'
-
-      // Save file record to database
+    // Save file records to database with blob URLs
+    if (dokKegiatanBlobUrl) {
       await prisma.analysisFile.create({
         data: {
           analysis_id: savedAnalysis.id,
-          file_type: fileType,
-          original_name: file.name,
-          stored_path: `uploads/analysis/${institutionId}/${userId}/${fileName}`,
-          file_size: file.size,
-          mime_type: file.type
+          file_type: 'dok_kegiatan',
+          original_name: 'dok_kegiatan.pdf', // You might want to extract actual filename from blob URL
+          stored_path: dokKegiatanBlobUrl, // Store blob URL instead of local path
+          file_size: 0, // Size not available from blob URL
+          mime_type: 'application/pdf' // Default mime type
+        }
+      })
+    }
+
+    if (dokKeuanganBlobUrl) {
+      await prisma.analysisFile.create({
+        data: {
+          analysis_id: savedAnalysis.id,
+          file_type: 'dok_keuangan',
+          original_name: 'dok_keuangan.pdf', // You might want to extract actual filename from blob URL
+          stored_path: dokKeuanganBlobUrl, // Store blob URL instead of local path
+          file_size: 0, // Size not available from blob URL
+          mime_type: 'application/pdf' // Default mime type
         }
       })
     }
