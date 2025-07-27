@@ -33,17 +33,14 @@ export async function POST(request: NextRequest) {
       dokKeuanganBlobUrl = dokKeuanganUpload.url;
     }
 
-    // Create new FormData for external API (if still needed)
+    // Create new FormData for external API (send file binary as before)
     const correctedFormData = new FormData();
     for (const [key, value] of formData.entries()) {
-      if (key === 'dok_kegiatan' && dokKegiatanBlobUrl) {
-        correctedFormData.append('dok_kegiatan_url', dokKegiatanBlobUrl);
-      } else if (key === 'dok_keuangan' && dokKeuanganBlobUrl) {
-        correctedFormData.append('dok_keuangan_url', dokKeuanganBlobUrl);
-      } else if (!(value instanceof File)) {
+      if (value instanceof File) {
+        correctedFormData.append(key, value); // Kirim file binary ke API eksternal
+      } else {
         correctedFormData.append(key, String(value));
       }
-      // Do not append the original File objects anymore
     }
 
     // Forward the correctedFormData to external API
@@ -132,8 +129,13 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json()
 
-    // Return the data with proper headers
-    return NextResponse.json(data, {
+    // Return the data and blob URLs for reference
+    return NextResponse.json({
+      ...data,
+      dok_kegiatan_url: dokKegiatanBlobUrl,
+      dok_keuangan_url: dokKeuanganBlobUrl,
+      message: 'Files uploaded to Vercel Blob Storage and sent to external API',
+    }, {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
