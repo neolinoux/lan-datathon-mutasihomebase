@@ -217,13 +217,6 @@ export default function BubbleAISentiment({ sentimentData, fileName, analysisDat
                   </div>
                 ))}
               </div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
-                <span>Prioritas: {rec.priority}</span>
-                <span>Estimasi: {rec.estimatedTime}</span>
-                <span className={`${getImpactColor(rec.impact)}`}>
-                  Dampak: {rec.impact.charAt(0).toUpperCase() + rec.impact.slice(1)}
-                </span>
-              </div>
             </Card>
           ))}
         </Card>

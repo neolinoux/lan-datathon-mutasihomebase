@@ -8,7 +8,7 @@ interface PriceItem {
 
 export async function GET() {
   try {
-    const response = await fetch('https://baec13f3a9c5.ngrok-free.app/daftar_harga', {
+    const response = await fetch('https://c89b823ad59d.ngrok-free.app/daftar_harga', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

@@ -7,30 +7,44 @@ const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
-
     const formData = await request.formData()
     const analysisResult = JSON.parse(formData.get('analysis_result') as string)
     const files = formData.getAll('files') as File[]
     const userId = parseInt(formData.get('user_id') as string)
     const institutionId = parseInt(formData.get('institution_id') as string)
 
-    // Extract data from API response
-    const {
-      data: {
-        id_dokumen,
-        judul_kegiatan,
-        deskripsi_kegiatan,
-        include_dok_keuangan,
-        path_dok_kegiatan,
-        path_dok_keuangan,
-        data_response: {
-          list_peraturan_terkait,
-          indikator_compliance,
-          summary_indicator_compliance,
-          rekomendasi_per_indikator
-        }
-      }
-    } = analysisResult
+    console.log('Save API - Received data:', {
+      userId,
+      institutionId,
+      filesCount: files.length,
+      analysisResultKeys: Object.keys(analysisResult)
+    })
+
+    // Log the full analysis result structure
+    console.log('Analysis result structure:', JSON.stringify(analysisResult, null, 2))
+
+    // Extract data from API response with better error handling
+    let id_dokumen, judul_kegiatan, deskripsi_kegiatan, include_dok_keuangan, path_dok_kegiatan, path_dok_keuangan
+    let list_peraturan_terkait, indikator_compliance, summary_indicator_compliance, rekomendasi_per_indikator
+
+    try {
+      const { data } = analysisResult
+      id_dokumen = data.id_dokumen
+      judul_kegiatan = data.judul_kegiatan
+      deskripsi_kegiatan = data.deskripsi_kegiatan
+      include_dok_keuangan = data.include_dok_keuangan
+      path_dok_kegiatan = data.path_dok_kegiatan
+      path_dok_keuangan = data.path_dok_keuangan
+
+      const { data_response } = data
+      list_peraturan_terkait = data_response.list_peraturan_terkait
+      indikator_compliance = data_response.indikator_compliance
+      summary_indicator_compliance = data_response.summary_indicator_compliance
+      rekomendasi_per_indikator = data_response.rekomendasi_per_indikator
+    } catch (extractError) {
+      console.error('Error extracting data from analysis result:', extractError)
+      throw new Error('Invalid analysis result structure')
+    }
 
     // Create analysis result record
     const savedAnalysis = await prisma.analysisResult.create({

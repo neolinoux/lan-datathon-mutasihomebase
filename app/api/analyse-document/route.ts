@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward the corrected FormData to external API
-    const externalApiUrl = 'https://baec13f3a9c5.ngrok-free.app/analyse_compliance_doc/'
+    const externalApiUrl = 'https://c89b823ad59d.ngrok-free.app/analyse_compliance_doc/'
 
     const response = await fetch(externalApiUrl, {
       method: 'POST',

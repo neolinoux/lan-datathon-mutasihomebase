@@ -11,7 +11,7 @@ import { ModeToggle } from "@/components/toggle-dark-mode";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
-import { LogOut } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import Link from "next/link";
 import { FileText, Users, DollarSign } from "lucide-react";
@@ -235,6 +235,20 @@ export default function AnalisisDokumenPage() {
             saveFormData.append('files', fileAnggaran);
           }
 
+          // Actually call the save API
+          const saveResponse = await fetch('/api/analysis/save', {
+            method: 'POST',
+            body: saveFormData,
+          });
+
+          if (!saveResponse.ok) {
+            const saveErrorData = await saveResponse.json();
+            console.error('Error saving to database:', saveErrorData);
+          } else {
+            const saveResult = await saveResponse.json();
+            console.log('Analysis saved successfully:', saveResult);
+          }
+
         } catch (saveError) {
           console.error('Error saving analysis result:', saveError);
           // Don't throw error here, just log it
@@ -256,287 +270,196 @@ export default function AnalisisDokumenPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full bg-card border-r z-50 ${sidebarCollapsed ? 'w-18' : 'w-64'}`}>
-        <div className="flex flex-col h-full">
-          {/* Burger Button */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} w-full`}>
-              {!sidebarCollapsed && (
-                <div className="flex items-center space-x-2">
-                  <Building2 className="h-6 w-6 text-primary" />
-                  <span className="font-semibold text-lg">PANTAS.AI</span>
-                </div>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="h-8 w-8 p-0"
-              >
-                {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-
-          {/* Menu Items */}
-          <div className="flex-1 p-4 flex flex-col gap-4">
-            <Link href="/">
-              <Button
-                variant="outline"
-                className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
-              >
-                <Home className="h-4 w-4 mr-2" />
-                {!sidebarCollapsed && "Dashboard"}
-              </Button>
-            </Link>
-
-            <Link href="/daftar-harga">
-              <Button
-                variant="outline"
-                className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
-              >
-                <DollarSign className="h-4 w-4 mr-2" />
-                {!sidebarCollapsed && "Daftar Harga"}
-              </Button>
-            </Link>
-
-            <Link href="/analisis-dokumen">
-              <Button
-                variant="default"
-                className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                {!sidebarCollapsed && "Analisis Dokumen"}
-              </Button>
-            </Link>
-
-            <Link href="/riwayat-analisis">
-              <Button
-                variant="outline"
-                className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
-              >
-                <History className="h-4 w-4 mr-2" />
-                {!sidebarCollapsed && "Riwayat Analisis"}
-              </Button>
-            </Link>
-
-            {/* Admin-only menu items */}
-            {user?.role === 'admin' && (
-              <>
-                <Link href="/manajemen-instansi">
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
-                  >
-                    <Building2 className="h-4 w-4 mr-2" />
-                    {!sidebarCollapsed && "Manajemen Instansi"}
-                  </Button>
-                </Link>
-
-                <Link href="/manajemen-pengguna">
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    {!sidebarCollapsed && "Manajemen Pengguna"}
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
-        <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen bg-background w-full">
 
-          {/* Konten utama */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Navbar filter instansi */}
-            <nav className="w-full bg-card border-b px-8 py-4 flex items-center justify-between">
-              <div className="text-lg font-semibold">Asisten AI Kepatuhan</div>
-              <div className="flex items-center gap-2">
-                {user ? (
-                  <>
-                    {user.role === 'admin' && user.institution?.id === 0 ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="min-w-[220px] justify-between">
-                            {instansi}
-                            <span className="ml-2">▼</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {instansiList.filter((item) => item.id !== 0).map((item) => (
-                            <DropdownMenuItem key={item.id} onClick={() => setInstansi(item.name)}>
-                              {item.name}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <span className="text-sm text-muted-foreground px-3 py-2 bg-muted rounded-md">
-                        {user.institution?.name || "Instansi tidak ditemukan"}
-                      </span>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Link href="/riwayat-analisis">
-                        <Button variant="outline" size="sm">
-                          <FileText className="h-4 w-4 mr-2" />
-                          Riwayat
-                        </Button>
-                      </Link>
-                      <span className="text-sm text-muted-foreground">
-                        {user.name} ({user.role})
-                      </span>
-                      <Button variant="outline" size="sm" onClick={handleLogout}>
-                        <LogOut className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  /* Show login button for non-authenticated users */
-                  <Link href="/login">
-                    <Button variant="default" size="sm">
-                      Login
-                    </Button>
-                  </Link>
-                )}
-                <ModeToggle />
-              </div>
-            </nav>
-
-            {/* Konten analisis */}
-            <main className="flex-1 px-8 py-8 flex flex-col items-center justify-center min-h-[80vh]">
-              {error && (
-                <div className="w-full max-w-2xl mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                  <div className="text-red-800 font-medium">Error:</div>
-                  <div className="text-red-600 text-sm">{error}</div>
-                </div>
-              )}
-
-              {/* Show analysis form only for authenticated users */}
-              {user && !(showResult || selectedHistoryFile || selectedAnalysisId || isLoadingHistory) && (
+        {/* Konten utama */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Navbar filter instansi */}
+          <nav className="w-full bg-card border-b px-8 py-4 flex items-center justify-between">
+            <div className="text-lg font-semibold">Asisten AI Kepatuhan</div>
+            <div className="flex items-center gap-2">
+              {user ? (
                 <>
-                  <div className="text-center text-lg font-semibold">Hai saya PANTAS.AI siap membantu anda melakukan analisis dokumen</div>
-                  <div className="text-center text-sm text-muted-foreground mb-4">Silahkan masukkan judul dan deskripsi dokumen yang ingin anda analisis</div>
-
-                  {/* Dropdown Instansi untuk Admin */}
-                  {user.role === 'admin' && user.institution?.id === 0 && (
-                    <div className="w-full max-w-2xl mb-4">
-                      <div className="mb-2 font-medium text-left">Pilih Instansi untuk Analisis:</div>
-                      <select
-                        value={instansi}
-                        onChange={(e) => setInstansi(e.target.value)}
-                        className="w-full p-2 border border-input bg-background text-foreground rounded-md"
-                      >
+                  {user.role === 'admin' && user.institution?.id === 0 ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="min-w-[220px] justify-between">
+                          {instansi}
+                          <span className="ml-2">▼</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
                         {instansiList.filter((item) => item.id !== 0).map((item) => (
-                          <option key={item.id} value={item.name}>
+                          <DropdownMenuItem key={item.id} onClick={() => setInstansi(item.name)}>
                             {item.name}
-                          </option>
+                          </DropdownMenuItem>
                         ))}
-                      </select>
-                    </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <span className="text-sm text-muted-foreground px-3 py-2 bg-muted rounded-md">
+                      {user.institution?.name || "Instansi tidak ditemukan"}
+                    </span>
                   )}
-
-                  <div className="w-full max-w-2xl flex flex-col gap-4 mb-8 items-center">
-                    <Input
-                      placeholder="Judul Dokumen"
-                      value={docTitle}
-                      onChange={e => setDocTitle(e.target.value)}
-                      className="bg-card text-card-foreground"
-                    />
-                    <Textarea
-                      placeholder="Deskripsi Dokumen"
-                      value={docDesc}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDocDesc(e.target.value)}
-                      className="bg-card text-card-foreground min-h-[60px]"
-                    />
-                    <div className="w-full max-w-md mx-auto flex flex-col gap-4">
-                      <div>
-                        <div className="mb-1 font-medium">Dokumen Laporan Kegiatan</div>
-                        <FileDropzone file={fileLaporan} onFileChange={handleFileLaporanChange} disabled={showResult} />
-                      </div>
-                      <div className="flex items-center gap-2 mt-4">
-                        <Switch id="toggle-anggaran" checked={enableAnggaran} onCheckedChange={setEnableAnggaran} />
-                        <label htmlFor="toggle-anggaran" className="text-sm select-none cursor-pointer">Aktifkan Upload Dokumen Keuangan</label>
-                      </div>
-                      {enableAnggaran && (
-                        <div>
-                          <div className="mb-1 font-medium">Dokumen Keuangan (Wajib)</div>
-                          <FileDropzone file={fileAnggaran} onFileChange={handleFileAnggaranChange} disabled={showResult} />
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      className="mt-2 cursor-pointer"
-                      onClick={handleAnalisis}
-                      disabled={
-                        !fileLaporan ||
-                        !docTitle.trim() ||
-                        !docDesc.trim() ||
-                        (enableAnggaran && !fileAnggaran) ||
-                        isLoading
-                      }
-                    >
-                      {isLoading ? 'Menganalisis...' : 'Analisis'}
+                  <div className="flex items-center gap-2">
+                    <Link href="/riwayat-analisis">
+                      <Button variant="outline" size="sm">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Riwayat
+                      </Button>
+                    </Link>
+                    <span className="text-sm text-muted-foreground">
+                      {user.name} ({user.role})
+                    </span>
+                    <Button variant="outline" size="sm" onClick={handleLogout}>
+                      <LogOut className="h-4 w-4" />
                     </Button>
                   </div>
                 </>
+              ) : (
+                /* Show login button for non-authenticated users */
+                <Link href="/login">
+                  <Button variant="default" size="sm">
+                    Login
+                  </Button>
+                </Link>
               )}
+              <ModeToggle />
+            </div>
+          </nav>
 
-              {/* Show message for non-authenticated users */}
-              {!user && !(showResult || selectedHistoryFile || selectedAnalysisId || isLoadingHistory) && (
-                <div className="text-center">
-                  <div className="text-lg font-semibold mb-2">Selamat Datang di PANTAS.AI</div>
-                  <div className="text-sm text-muted-foreground mb-4">
-                    Anda dapat melihat riwayat analisis dokumen dari semua instansi di sidebar sebelah kanan.
-                    <br />
-                    Untuk melakukan analisis dokumen baru, silakan login terlebih dahulu.
+          {/* Konten analisis */}
+          <main className="flex-1 px-8 py-8 flex flex-col items-center justify-center min-h-[80vh]">
+            {error && (
+              <div className="w-full max-w-2xl mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                <div className="text-red-800 font-medium">Error:</div>
+                <div className="text-red-600 text-sm">{error}</div>
+              </div>
+            )}
+
+            {/* Show analysis form only for authenticated users */}
+            {user && !(showResult || selectedHistoryFile || selectedAnalysisId || isLoadingHistory) && (
+              <>
+                <div className="text-center text-lg font-semibold">Hai saya PANTAS.AI siap membantu anda melakukan analisis dokumen</div>
+                <div className="text-center text-sm text-muted-foreground mb-4">Silahkan masukkan judul dan deskripsi dokumen yang ingin anda analisis</div>
+
+                {/* Dropdown Instansi untuk Admin */}
+                {user.role === 'admin' && user.institution?.id === 0 && (
+                  <div className="w-full max-w-2xl mb-4">
+                    <div className="mb-2 font-medium text-left">Pilih Instansi untuk Analisis:</div>
+                    <select
+                      value={instansi}
+                      onChange={(e) => setInstansi(e.target.value)}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md"
+                    >
+                      {instansiList.filter((item) => item.id !== 0).map((item) => (
+                        <option key={item.id} value={item.name}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
-              )}
-              {/* Bubble analisis AI muncul setelah analisis */}
-              {(showResult || selectedHistoryFile || selectedAnalysisId) && analysisResult && (
-                <div className="w-full flex flex-col items-center gap-6">
-                  {isLoadingHistory ? (
-                    <div className="w-full max-w-2xl p-8 text-center">
-                      <div className="text-lg font-semibold mb-2">Memuat hasil analisis...</div>
-                      <div className="text-sm text-muted-foreground">Mohon tunggu sebentar</div>
+                )}
+
+                <div className="w-full max-w-2xl flex flex-col gap-4 mb-8 items-center">
+                  <Input
+                    placeholder="Judul Dokumen"
+                    value={docTitle}
+                    onChange={e => setDocTitle(e.target.value)}
+                    className="bg-card text-card-foreground"
+                  />
+                  <Textarea
+                    placeholder="Deskripsi Dokumen"
+                    value={docDesc}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDocDesc(e.target.value)}
+                    className="bg-card text-card-foreground min-h-[60px]"
+                  />
+                  <div className="w-full max-w-md mx-auto flex flex-col gap-4">
+                    <div>
+                      <div className="mb-1 font-medium">Dokumen Laporan Kegiatan</div>
+                      <FileDropzone file={fileLaporan} onFileChange={handleFileLaporanChange} disabled={showResult} />
                     </div>
-                  ) : (
-                    <>
-                      <BubbleAIPromptResult
-                        fileName={analysisResult?.data?.judul_kegiatan || "Dokumen Analisis"}
-                        analysisData={analysisResult?.data}
-                        error={error || undefined}
-                      />
-                      <BubbleAISentiment
-                        analysisData={analysisResult?.data}
-                        error={error || undefined}
-                      />
-                    </>
-                  )}
+                    <div className="flex items-center gap-2 mt-4">
+                      <Switch id="toggle-anggaran" checked={enableAnggaran} onCheckedChange={setEnableAnggaran} />
+                      <label htmlFor="toggle-anggaran" className="text-sm select-none cursor-pointer">Aktifkan Upload Dokumen Keuangan</label>
+                    </div>
+                    {enableAnggaran && (
+                      <div>
+                        <div className="mb-1 font-medium">Dokumen Keuangan (Wajib)</div>
+                        <FileDropzone file={fileAnggaran} onFileChange={handleFileAnggaranChange} disabled={showResult} />
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    className="mt-2 cursor-pointer"
+                    onClick={handleAnalisis}
+                    disabled={
+                      !fileLaporan ||
+                      !docTitle.trim() ||
+                      !docDesc.trim() ||
+                      (enableAnggaran && !fileAnggaran) ||
+                      isLoading
+                    }
+                  >
+                    {isLoading ?
+                      <div>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      </div>
+                      : 'Analisis'}
+                  </Button>
                 </div>
-              )}
-            </main>
-            {/* Footer kosong, tidak ada FileDropzone sticky bawah */}
-            <footer className="w-full px-8 py-6 bg-card border-t flex justify-center sticky bottom-0 z-20"></footer>
-          </div>
-          {/* Sidebar kanan */}
-          <div className="hidden lg:block w-[320px] border-l bg-card sticky top-0 h-screen overflow-y-auto">
-            <SidebarAnalisisKanan
-              userId={user?.id}
-              institutionId={user?.institution?.id}
-              userRole={user?.role}
-              onHistoryClick={loadAnalysisFromHistory}
-              selectedAnalysisId={selectedAnalysisId}
-              onAnalisisBaru={handleAnalisisBaru}
-            />
-          </div>
+              </>
+            )}
+
+            {/* Show message for non-authenticated users */}
+            {!user && !(showResult || selectedHistoryFile || selectedAnalysisId || isLoadingHistory) && (
+              <div className="text-center">
+                <div className="text-lg font-semibold mb-2">Selamat Datang di PANTAS.AI</div>
+                <div className="text-sm text-muted-foreground mb-4">
+                  Anda dapat melihat riwayat analisis dokumen dari semua instansi di sidebar sebelah kanan.
+                  <br />
+                  Untuk melakukan analisis dokumen baru, silakan login terlebih dahulu.
+                </div>
+              </div>
+            )}
+            {/* Bubble analisis AI muncul setelah analisis */}
+            {(showResult || selectedHistoryFile || selectedAnalysisId) && analysisResult && (
+              <div className="w-full flex flex-col items-center gap-6">
+                {isLoadingHistory ? (
+                  <div className="w-full max-w-2xl p-8 text-center">
+                    <div className="text-lg font-semibold mb-2">Memuat hasil analisis...</div>
+                    <div className="text-sm text-muted-foreground">Mohon tunggu sebentar</div>
+                  </div>
+                ) : (
+                  <>
+                    <BubbleAIPromptResult
+                      fileName={analysisResult?.data?.judul_kegiatan || "Dokumen Analisis"}
+                      analysisData={analysisResult?.data}
+                      error={error || undefined}
+                    />
+                    <BubbleAISentiment
+                      analysisData={analysisResult?.data}
+                      error={error || undefined}
+                    />
+                  </>
+                )}
+              </div>
+            )}
+          </main>
+          {/* Footer kosong, tidak ada FileDropzone sticky bawah */}
+          <footer className="w-full px-8 py-6 bg-card border-t flex justify-center sticky bottom-0 z-20"></footer>
+        </div>
+        {/* Sidebar kanan */}
+        <div className="hidden lg:block w-[320px] border-l bg-card sticky top-0 h-screen overflow-y-auto">
+          <SidebarAnalisisKanan
+            userId={user?.id}
+            institutionId={user?.institution?.id}
+            userRole={user?.role}
+            onHistoryClick={loadAnalysisFromHistory}
+            selectedAnalysisId={selectedAnalysisId}
+            onAnalisisBaru={handleAnalisisBaru}
+          />
         </div>
       </div>
     </div>
