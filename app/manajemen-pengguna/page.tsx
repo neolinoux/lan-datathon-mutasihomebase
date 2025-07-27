@@ -174,15 +174,15 @@ export default function ManajemenPenggunaPage() {
                 </Button>
               </Link>
 
-              {/* <Link href="/manajemen-file">
+              <Link href="/daftar-harga">
                 <Button
                   variant="outline"
                   className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
                 >
                   <FileText className="h-4 w-4 mr-2" />
-                  {!sidebarCollapsed && "Manajemen File"}
+                  {!sidebarCollapsed && "Daftar Harga"}
                 </Button>
-              </Link> */}
+              </Link>
 
 
               {user?.role === 'admin' && (

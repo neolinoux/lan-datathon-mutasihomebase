@@ -257,13 +257,13 @@ export default function DashboardPage() {
                     </Button>
                   </Link>
 
-                  <Link href="/manajemen-user">
+                  <Link href="/manajemen-pengguna">
                     <Button
                       variant="outline"
                       className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
                     >
                       <Users className="h-4 w-4 mr-2" />
-                      {!sidebarCollapsed && "Manajemen User"}
+                      {!sidebarCollapsed && "Manajemen Pengguna"}
                     </Button>
                   </Link>
                 </>
@@ -441,13 +441,13 @@ export default function DashboardPage() {
                     </Button>
                   </Link>
 
-                  <Link href="/manajemen-user">
+                  <Link href="/manajemen-pengguna">
                     <Button
                       variant="outline"
                       className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
                     >
                       <Users className="h-4 w-4 mr-2" />
-                      {!sidebarCollapsed && "Manajemen User"}
+                      {!sidebarCollapsed && "Manajemen Pengguna"}
                     </Button>
                   </Link>
                 </>
@@ -598,13 +598,13 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
 
-                <Link href="/manajemen-user">
+                <Link href="/manajemen-pengguna">
                   <Button
                     variant="outline"
                     className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
                   >
                     <Users className="h-4 w-4 mr-2" />
-                    {!sidebarCollapsed && "Manajemen User"}
+                    {!sidebarCollapsed && "Manajemen Pengguna"}
                   </Button>
                 </Link>
               </>

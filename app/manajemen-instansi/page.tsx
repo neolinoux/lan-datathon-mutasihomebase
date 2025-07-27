@@ -278,9 +278,19 @@ export default function ManajemenInstansiPage() {
                 </Button>
               </Link>
 
+              <Link href="/daftar-harga">
+                <Button
+                  variant="outline"
+                  className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
+                >
+                  <History className="h-4 w-4 mr-2" />
+                  {!sidebarCollapsed && "Daftar Harga"}
+                </Button>
+              </Link>
+
               {user?.role === 'admin' && (
                 <>
-                  <Link href="/manajemen-institusi">
+                  <Link href="/manajemen-instansi">
                     <Button
                       variant="default"
                       className={`w-full justify-start ${sidebarCollapsed ? 'px-2' : 'px-4'}`}
