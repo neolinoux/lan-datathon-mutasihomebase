@@ -107,7 +107,7 @@ export default function LoginPage() {
                 <p>Password: password123</p>
               </div>
               <div className=" text-sm text-gray-500 mt-4 text-left">
-                <p >Contoh dokumen: <a className="text-blue-500 underline italic" href="https://drive.google.com/drive/folders/1bHrvxu1kaekYhNsQmN9lvd17fEnoK39v?usp=sharing" target="_blank" rel="noopener noreferrer">https://drive.google.com/drive/folders/1bHrvxu1kaekYhNsQmN9lvd17fEnoK39v?usp=sharing</a></p>
+                <p >Contoh dokumen: <a className="text-blue-500 underline italic" href="https://drive.google.com/drive/folders/1bHrvxu1kaekYhNsQmN9lvd17fEnoK39v?usp=sharing" target="_blank" rel="noopener noreferrer">http://s.bps.go.id/contoh_dokumen</a></p>
               </div>
             </CardContent>
           </Card>
