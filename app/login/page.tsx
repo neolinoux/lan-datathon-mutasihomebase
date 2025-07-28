@@ -44,7 +44,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 flex-col gap-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Login</CardTitle>
@@ -96,14 +96,21 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-          <div className="text-center text-sm text-gray-500 mt-4">
-            <p>Username: admin@lan-datathon.go.id</p>
-            <p>Username: user.bpsprovinsipapuabarat@example.com</p>
-            <p>Password: password123</p>
-          </div>
-          <div className="text-center text-sm text-gray-500 mt-4">
-            <p>Contoh dokumen: <a href="https://drive.google.com/drive/folders/1bHrvxu1kaekYhNsQmN9lvd17fEnoK39v?usp=sharing" target="_blank" rel="noopener noreferrer">https://drive.google.com/drive/folders/1bHrvxu1kaekYhNsQmN9lvd17fEnoK39v?usp=sharing</a></p>
-          </div>
+          <Card className="w-full max-w-md mt-4">
+            <CardContent>
+              <div className=" text-sm text-gray-500 text-left">
+                <strong>Contoh username dan password</strong>
+              </div>
+              <div className=" text-sm text-gray-500 mt-4 text-left">
+                <p>Username: admin@lan-datathon.go.id</p>
+                <p>Username: user.bpsprovinsipapuabarat@example.com</p>
+                <p>Password: password123</p>
+              </div>
+              <div className=" text-sm text-gray-500 mt-4 text-left">
+                <p >Contoh dokumen: <a className="text-blue-500 underline italic" href="https://drive.google.com/drive/folders/1bHrvxu1kaekYhNsQmN9lvd17fEnoK39v?usp=sharing" target="_blank" rel="noopener noreferrer">https://drive.google.com/drive/folders/1bHrvxu1kaekYhNsQmN9lvd17fEnoK39v?usp=sharing</a></p>
+              </div>
+            </CardContent>
+          </Card>
         </CardContent>
       </Card>
       <div className="text-center text-sm text-gray-500">
