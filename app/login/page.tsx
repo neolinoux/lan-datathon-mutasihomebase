@@ -96,8 +96,19 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+          <div className="text-center text-sm text-gray-500 mt-4">
+            <p>Username: admin@lan-datathon.go.id</p>
+            <p>Username: user.bpsprovinsipapuabarat@example.com</p>
+            <p>Password: password123</p>
+          </div>
+          <div className="text-center text-sm text-gray-500 mt-4">
+            <p>Contoh dokumen: <a href="https://drive.google.com/drive/folders/1bHrvxu1kaekYhNsQmN9lvd17fEnoK39v?usp=sharing" target="_blank" rel="noopener noreferrer">https://drive.google.com/drive/folders/1bHrvxu1kaekYhNsQmN9lvd17fEnoK39v?usp=sharing</a></p>
+          </div>
         </CardContent>
       </Card>
+      <div className="text-center text-sm text-gray-500">
+        <p>Copyright © 2025 Lan Datathon</p>
+      </div>
     </div>
   )
 } 
