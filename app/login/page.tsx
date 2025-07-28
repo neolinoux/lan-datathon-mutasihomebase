@@ -114,7 +114,7 @@ export default function LoginPage() {
         </CardContent>
       </Card>
       <div className="text-center text-sm text-gray-500">
-        <p>Copyright © 2025 Lan Datathon</p>
+        <p>Copyright © {new Date().getFullYear()} Tim Mutasi Homebase - made with ❤️</p>
       </div>
     </div>
   )
